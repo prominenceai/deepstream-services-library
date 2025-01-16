@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -333,6 +333,62 @@ namespace DSL
         bool AddStreammuxPph(DSL_PPH_PTR pHandler, streammux_type streammux);
 
         bool RemoveStreammuxPph(DSL_PPH_PTR pHandler, streammux_type streammux);
+
+        /**
+         * @brief Gets the current enabled setting for the Pipeline's Audiomixer.
+         * @return true if Audiomixer enabled, false otherwise.
+         */
+        boolean GetAudiomixEnabled();
+
+        /**
+         * @brief Sets the enabled setting for the Pipeline's Audiomixer.
+         * @param[in] enabled set to true to enable the Audiomixer, false otherwise.
+         * @return true if enabled setting could be set, false otherwise.
+         */
+        bool SetAudiomixEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the current mute enabled setting for the Pipeline's Audiomixer
+         * for a specific Audio Source.
+         * @param[in] pChildSource shared pointer to the Audio Source.
+         * @param[out] true if the Audiomixer mute is enabled for the specified Source, 
+         * false otherwise.
+         * @return true if the setting was returned succesfully, false otherwise
+         */
+        bool GetAudiomixMuteEnabled(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            boolean* enabled);
+
+        /**
+         * @brief Sets the mute enabled setting for the Pipeline's Audiomixer for 
+         * a specific Audio Source.
+         * @param[in] pChildSource shared pointer to the Audio Source.
+         * @param [in] enabled set to true to enable the Audiomixer mute setting for
+         * the specified Audio source, false otherwise.
+         * @return true if enabled setting could be set, false otherwise.
+         */
+        bool SetAudiomixMuteEnabled(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            boolean enabled);
+
+        /**
+         * @brief Gets the current volume setting for the Pipeline's Audiomixer
+         * for a specific Audio Source.
+         * @param[in] pChildSource shared pointer to the Audio Source.
+         * @param[out] volume current Audiomixer volume for the specified Source, between
+         * 0.0 and 10.0 - default = 1.0
+         * @return true if the setting was returned succesfully, false otherwise
+         */
+        bool GetAudiomixVolume(DSL_AUDIO_SOURCE_PTR pChildSource, double* volume);
+
+        /**
+         * @brief Sets the volume setting for the Pipeline's Audiomixer for a 
+         * specific Audio Source.
+         * @param[in] pChildSource shared pointer to the Audio Source.
+         * @param [in] volume new Audiomixer volume setting for the specified Audio 
+         * source between 0.0 and 10.0 - default = 1.0.
+         * @return true if volvume setting could be set, false otherwise.
+         */
+        bool SetAudiomixVolume(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            double volume);
 
         /**
          * @brief dumps a Pipeline's graph to dot file.

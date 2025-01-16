@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -598,6 +598,8 @@ namespace DSL
         m_returnValueToString[DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED] = L"DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED";
         m_returnValueToString[DSL_RESULT_PIPELINE_GET_FAILED] = L"DSL_RESULT_PIPELINE_GET_FAILED";
         m_returnValueToString[DSL_RESULT_PIPELINE_SET_FAILED] = L"DSL_RESULT_PIPELINE_SET_FAILED";
+        m_returnValueToString[DSL_RESULT_PIPELINE_AUDIOMIX_GET_FAILED] = L"DSL_RESULT_PIPELINE_AUDIOMIX_GET_FAILED";
+        m_returnValueToString[DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED] = L"DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED";
 
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION] = L"DSL_RESULT_DISPLAY_TYPE_THREW_EXCEPTION";
         m_returnValueToString[DSL_RESULT_DISPLAY_TYPE_IN_USE] = L"DSL_RESULT_DISPLAY_TYPE_IN_USE";

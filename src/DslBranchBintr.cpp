@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -777,34 +777,40 @@ namespace DSL
         if ((GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY))
         {
-            if (m_pAudioDemuxerBintr)
-            {
-                LOG_ERROR("Branch '" << GetName() 
-                    << "' already has an Audio Demuxer - can't add Sink after a Demuxer");
-                return false;
-            }
+            // IMPORTANT! this code disabled until nvstreamdemux can support 
+            // the nvinferaudio 
+             
+            // if (m_pAudioDemuxerBintr)
+            // {
+            //     LOG_ERROR("Branch '" << GetName() 
+            //         << "' already has an Audio Demuxer - can't add Sink after a Demuxer");
+            //     return false;
+            // }
+            // Create the MultiAudioSinksBintr if it doesn't exist
+            // if (!m_pMultiAudioSinksBintr)
+            // {
+            //     m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
+
+            //     // Set the MultiAudioSinkBintr's media-type to audio before adding.
+            //     // Value cannot be updated once it is added as a child.
+            //     m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
+                
+            //     if (!AddChild(m_pMultiAudioSinksBintr))
+            //     {
+            //         return false;
+            //     }
+            // if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
+            // {
+            //     return false;
+            // }
+            // }
+
+            // IMPORTANT! only a fakesink can be added until nvstreamdemux 
+            // is completed. MessageSink is still TBD??
             if (!AddChild(pChildSinkBintr))
             {
                 return false;
             }
-        //     // Create the MultiAudioSinksBintr if it doesn't exist
-        //     if (!m_pMultiAudioSinksBintr)
-        //     {
-        //         m_pMultiAudioSinksBintr = DSL_DEMUXED_SINKS_NEW("audio-sinks-bin");
-
-        //         // Set the MultiAudioSinkBintr's media-type to audio before adding.
-        //         // Value cannot be updated once it is added as a child.
-        //         m_pMultiAudioSinksBintr->SetMediaType(DSL_MEDIA_TYPE_AUDIO_ONLY);
-                
-        //         if (!AddChild(m_pMultiAudioSinksBintr))
-        //         {
-        //             return false;
-        //         }
-        //     }
-        //     if (! m_pMultiAudioSinksBintr->AddChild(pChildSinkBintr))
-        //     {
-        //         return false;
-        //     }
         }
         if ((m_mediaType & DSL_MEDIA_TYPE_VIDEO_ONLY) and
             (pChildSinkBintr->GetMediaType() & DSL_MEDIA_TYPE_VIDEO_ONLY))

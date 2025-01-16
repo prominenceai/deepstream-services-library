@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2021-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1008,6 +1008,221 @@ namespace DSL
         }
     }
             
+    DslReturnType Services::PipelineAudiomixEnabledGet(const char* name,
+        boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            *enabled = m_pipelines[name]->GetAudiomixEnabled();
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Audiomixer enabled = " 
+                << *enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Audiomixer enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineAudiomixEnabledSet(const char* name,
+        boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            
+            if (!m_pipelines[name]->SetAudiomixEnabled(enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Audiomixer enabled setting");
+                return DSL_RESULT_PIPELINE_STREAMMUX_SET_FAILED;
+            }
+            LOG_INFO("Pipeline '" << name 
+                << "' set the Audiomixer enabled setting = " 
+                << enabled << "' successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name 
+                << "' threw an exception setting Audiomixer enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+
+    DslReturnType Services::PipelineAudiomixMuteEnabledGet(const char* name,
+        const char* source, boolean* enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, source);
+            
+            DSL_AUDIO_SOURCE_PTR pAudioSource = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[source]);
+
+            if (!m_pipelines[name]->GetAudiomixMuteEnabled(
+                pAudioSource, enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to get the Audiomixer mute enabled setting");
+                return DSL_RESULT_PIPELINE_AUDIOMIX_GET_FAILED;
+            }
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Audiomixer mute enabled = " 
+                << *enabled << "' for Audio Source '"
+                << pAudioSource->GetName() << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Audiomixer enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineAudiomixMuteEnabledSet(const char* name,
+        const char* source, boolean enabled)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, source);
+            
+            DSL_AUDIO_SOURCE_PTR pAudioSource = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[source]);
+
+            if (!m_pipelines[name]->SetAudiomixMuteEnabled(
+                pAudioSource, enabled))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to set the Audiomixer mute enabled setting");
+                return DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED;
+            }
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' set Audiomixer mute enabled = " 
+                << enabled << "' for Audio Source '"
+                << pAudioSource->GetName() << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Audiomixer mute enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineAudiomixVolumeGet(const char* name,
+        const char* source, double* volume)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, source);
+            
+            DSL_AUDIO_SOURCE_PTR pAudioSource = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[source]);
+
+            if (!m_pipelines[name]->GetAudiomixVolume(
+                pAudioSource, volume))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to get the Audiomixer volume setting");
+                return DSL_RESULT_PIPELINE_AUDIOMIX_GET_FAILED;
+            }
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' returned Audiomixer volume = " 
+                << *volume << "' for Audio Source '"
+                << pAudioSource->GetName() << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Audiomixer volume");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::PipelineAudiomixVolumeSet(const char* name,
+        const char* source, double volume)    
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_PIPELINE_NAME_NOT_FOUND(m_pipelines, name);
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, source);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(m_components, source);
+            
+            DSL_AUDIO_SOURCE_PTR pAudioSource = 
+                std::dynamic_pointer_cast<AudioSourceBintr>(m_components[source]);
+
+            if (volume < 0.0 or volume > 10.0)
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' cannot Set the Audiomixer volume to " 
+                    << volume << " - out of range!");
+                return DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED;
+            }
+            if (!m_pipelines[name]->SetAudiomixVolume(
+                pAudioSource, volume))
+            {
+                LOG_ERROR("Pipeline '" << name 
+                    << "' failed to Set the Audiomixer volume setting");
+                return DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED;
+            }
+            
+            LOG_INFO("Pipeline '" << name 
+                << "' set Audiomixer volume = " 
+                << volume << "' for Audio Source '"
+                << pAudioSource->GetName() << "'");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Pipeline '" << name
+                << "' threw an exception getting Audiomixer enabled");
+            return DSL_RESULT_PIPELINE_THREW_EXCEPTION;
+        }
+    }
+        
     DslReturnType Services::PipelineLinkMethodGet(const char* name, uint* linkMethod)
     {
         LOG_FUNC();

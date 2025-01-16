@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 20113-2024, Prominence AI, Inc.
+Copyright (c) 20113-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -273,6 +273,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_GET_FAILED                              0x00080013
 #define DSL_RESULT_PIPELINE_SET_FAILED                              0x00080014
 #define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080015
+#define DSL_RESULT_PIPELINE_AUDIOMIX_GET_FAILED                     0x00080016
+#define DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED                     0x00080017
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -10455,6 +10457,78 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
 //------------------------------------------------------------------------------------
 // COMMON NVSTREAMMUX SERVICES - End
 //------------------------------------------------------------------------------------
+
+/**
+ * @brief Returns the current enabled/disabled setting for the named Pipeline's
+ * Audiomixer.
+ * @param[in] name name of the Pipeline to query.
+ * @param[out] enabled true if the Audiomixer is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current enabled/disabled setting for the named Pipeline's
+ * Audiomix. 
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] enabled set to true to enable the Audiomixer, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the Audiomixer's mute enabled setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to query.
+ * @param[in] source name of the Audio Source for the mute enabled setting.
+ * @param[out] enabled if true, then the Audiomixer's sink pad connected to
+ * the named Audio Source is currently muted - or will be muted when the pipeline 
+ * is played.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_mute_enabled_get(const wchar_t* name, 
+    const wchar_t* source, boolean* enabled);
+
+/**
+ * @brief Sets the Audiomixer's mute enabled setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] source name of the Audio Source to mute or unmute.
+ * @param[in] enabled set to true to mute the Audiomixer's sink pad connected to
+ * the named Audio Source, false to unmute.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set(const wchar_t* name, 
+    const wchar_t* source, boolean enabled);
+
+/**
+ * @brief Gets the Audiomixer's volume setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to query.
+ * @param[in] source name of the Audio Source for the volume setting.
+ * @param[out] volume the volume that is assigned to the Audiomixer's 
+ * sink pad connected to the named Audio Source, between 0.0 and 10.0.
+ * Default = 1.0
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_volume_get(const wchar_t* name, 
+    const wchar_t* source, double* volume);
+
+/**
+ * @brief Sets the Audiomixer's volume setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] source name of the Audio Source to set the volume for.
+ * @param[in] volume a value between 0.0 and 10.0. Default = 1.0.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name, 
+    const wchar_t* source, double volume);
+ 
 /**
  * @brief Gets the current link method in use by the named Pipeline.
  * @param[in] name unique name of the Pipeline to query.

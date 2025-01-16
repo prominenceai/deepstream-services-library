@@ -254,6 +254,7 @@ THE SOFTWARE.
 #define DSL_RETURN_IF_COMPONENT_IS_NOT_AUDIO_SOURCE(components, name) do \
 { \
     if (!components[name]->IsType(typeid(UriSourceBintr)) and  \
+        !components[name]->IsType(typeid(AlsaSourceBintr)) and  \
         !components[name]->IsType(typeid(FileSourceBintr))) \
     { \
         LOG_ERROR("Component '" << name << "' is not an Audio Source"); \

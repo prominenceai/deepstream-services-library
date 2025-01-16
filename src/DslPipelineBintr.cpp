@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -358,6 +358,63 @@ namespace DSL
             m_pPipelineSourcesBintr->m_pVideomux, DSL_PAD_SRC));
     }
 
+    boolean PipelineBintr::GetAudiomixEnabled()
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetAudiomixEnabled();
+    }
+    
+    bool PipelineBintr::SetAudiomixEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+
+        if (!m_pPipelineSourcesBintr->SetAudiomixEnabled(enabled))
+        {
+            return false;
+        }
+        // After update the Audiomixer enable state we need to update
+        // the pipelines media-type accordingly.
+        SetMediaType(m_pPipelineSourcesBintr->GetMediaType());
+        return true;
+    }
+    
+    bool PipelineBintr::GetAudiomixMuteEnabled(DSL_AUDIO_SOURCE_PTR pChildSource,
+        boolean* enabled)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetAudiomixMuteEnabled(pChildSource,
+            enabled);
+    }
+    
+    bool PipelineBintr::SetAudiomixMuteEnabled(DSL_AUDIO_SOURCE_PTR pChildSource,
+        boolean enabled)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetAudiomixMuteEnabled(pChildSource,
+            enabled);
+    }
+
+    bool PipelineBintr::GetAudiomixVolume(DSL_AUDIO_SOURCE_PTR pChildSource,
+        double* volume)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->GetAudiomixVolume(pChildSource, 
+            volume);
+    }
+    
+    bool PipelineBintr::SetAudiomixVolume(DSL_AUDIO_SOURCE_PTR pChildSource,
+        double volume)
+    {
+        LOG_FUNC();
+
+        return m_pPipelineSourcesBintr->SetAudiomixVolume(pChildSource,
+            volume);
+    }
+
     bool PipelineBintr::LinkAll()
     {
         LOG_FUNC();
@@ -372,7 +429,6 @@ namespace DSL
             LOG_ERROR("Pipline '" << GetName() << "' has no required Source component - and is unable to link");
             return false;
         }
-
         
         // Start with an empty list of linked components
         m_linkedAudioComps.clear();

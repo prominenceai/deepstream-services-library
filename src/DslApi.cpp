@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -12139,6 +12139,93 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
         DSL::DSL_VIDEOMUX, cstrHandler.c_str());
 }
  
+DslReturnType dsl_pipeline_audiomix_enabled_get(const wchar_t* name, 
+    boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineAudiomixEnabledGet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_audiomix_enabled_set(const wchar_t* name, 
+    boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->PipelineAudiomixEnabledSet(
+        cstrName.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_audiomix_mute_enabled_get(const wchar_t* name, 
+    const wchar_t* source, boolean* enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(source);
+    RETURN_IF_PARAM_IS_NULL(enabled);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->PipelineAudiomixMuteEnabledGet(
+        cstrName.c_str(), cstrSource.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set(const wchar_t* name, 
+    const wchar_t* source, boolean enabled)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(source);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->PipelineAudiomixMuteEnabledSet(
+        cstrName.c_str(), cstrSource.c_str(), enabled);
+}
+
+DslReturnType dsl_pipeline_audiomix_volume_get(const wchar_t* name, 
+    const wchar_t* source, double* volume)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(source);
+    RETURN_IF_PARAM_IS_NULL(volume);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->PipelineAudiomixVolumeGet(
+        cstrName.c_str(), cstrSource.c_str(), volume);
+}
+
+DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name, 
+    const wchar_t* source, double volume)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(source);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    std::wstring wstrSource(source);
+    std::string cstrSource(wstrSource.begin(), wstrSource.end());
+
+    return DSL::Services::GetServices()->PipelineAudiomixVolumeSet(
+        cstrName.c_str(), cstrSource.c_str(), volume);
+}
+
 DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method)
 {
     RETURN_IF_PARAM_IS_NULL(name);

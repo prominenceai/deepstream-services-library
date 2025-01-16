@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2024, Prominence AI, Inc.
+Copyright (c) 2024-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -346,7 +346,7 @@ SCENARIO( "A new Pipeline with an ALSA Source and ALSA Sink can play",
 }
 
 SCENARIO( "A new Pipeline with a URI Source, PAIE with SDE PPH, and Fake Sink,  can play - Audio Only",
-    "[error]" )
+    "[audio-behaviour]" )
 {
     GIVEN( "A Pipeline, URI Source, Window Sink, and Audio Fake Sink" ) 
     {
@@ -409,4 +409,5 @@ SCENARIO( "A new Pipeline with a URI Source, PAIE with SDE PPH, and Fake Sink,  
         }
     }
 }
+
 

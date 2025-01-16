@@ -8397,26 +8397,7 @@ def dsl_component_queue_leaky_set(name, leaky):
     return int(result)
 
 ##
-## dsl_component_queue_leaky_set_many()
-##
-#_dsl.dsl_component_queue_leaky_set_many.argtypes = []?
-_dsl.dsl_component_queue_leaky_set_many.restype = c_uint
-def dsl_component_queue_leaky_set_many(names, leaky):
-    global _dsl
-    arr = (c_wchar_p * len(names))()
-    arr[:] = names
-    result =_dsl.dsl_component_queue_leaky_set_many(arr, leaky)
-    return int(result)
-
-##
-## dsl_component_queue_max_size_get()
-##
-_dsl.dsl_component_queue_max_size_get.argtypes = [c_wchar_p, 
-    c_uint, POINTER(c_uint64)]
-_dsl.dsl_component_queue_max_size_get.restype = c_uint
-def dsl_component_queue_max_size_get(name, unit):
-    global _dsl
-    max_size = c_uint64(0)
+## dsl_component_queue_leaky_set_many()c_wchar_p, 
     result = _dsl.dsl_component_queue_max_size_get(name, 
         unit, DSL_UINT64_P(max_size))
     return int(result), max_size.value
@@ -8873,18 +8854,6 @@ def dsl_pipeline_component_remove_many(pipeline, components):
 ## AUDIO STREAMMUX SERVICES - Start
 
 ##
-## dsl_pipeline_audiomux_enabled_set()
-##
-_dsl.dsl_pipeline_audiomux_enabled_set.argtypes = [c_wchar_p, 
-    c_bool]
-_dsl.dsl_pipeline_audiomux_enabled_set.restype = c_uint
-def dsl_pipeline_audiomux_enabled_set(name, enabled):
-    global _dsl
-    result = _dsl.dsl_pipeline_audiomux_enabled_set(name, 
-        enabled)
-    return int(result)
-
-##
 ## dsl_pipeline_audiomux_enabled_get()
 ##
 _dsl.dsl_pipeline_audiomux_enabled_get.argtypes = [c_wchar_p, 
@@ -8896,6 +8865,18 @@ def dsl_pipeline_audiomux_enabled_get(name):
     result = _dsl.dsl_pipeline_audiomux_enabled_get(name, 
         DSL_BOOL_P(enabled))
     return int(result), enabled.value
+
+##
+## dsl_pipeline_audiomux_enabled_set()
+##
+_dsl.dsl_pipeline_audiomux_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_audiomux_enabled_set.restype = c_uint
+def dsl_pipeline_audiomux_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomux_enabled_set(name, 
+        enabled)
+    return int(result)
 
 ## -----------------------------------------------------------------------------------
 ## COMMON VIDEO STREAMMUX SERVICES - Start
@@ -9232,6 +9213,84 @@ _dsl.dsl_pipeline_streammux_pph_remove.restype = c_uint
 def dsl_pipeline_streammux_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_pph_remove(name, handler)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## AUDIO MIXER SERVICES - Start
+
+##
+## dsl_pipeline_audiomix_enabled_get()
+##
+_dsl.dsl_pipeline_audiomix_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_audiomix_enabled_get.restype = c_uint
+def dsl_pipeline_audiomix_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_audiomix_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_audiomix_enabled_set()
+##
+_dsl.dsl_pipeline_audiomix_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_audiomix_enabled_set.restype = c_uint
+def dsl_pipeline_audiomix_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomix_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_mute_enabled_get()
+##
+_dsl.dsl_pipeline_audiomix_mute_enabled_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_pipeline_audiomix_mute_enabled_get.restype = c_uint
+def dsl_pipeline_audiomix_mute_enabled_get(name, source):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_audiomix_mute_enabled_get(name, 
+        source, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_audiomix_mute_enabled_set()
+##
+_dsl.dsl_pipeline_audiomix_mute_enabled_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool]
+_dsl.dsl_pipeline_audiomix_mute_enabled_set.restype = c_uint
+def dsl_pipeline_audiomix_mute_enabled_set(name, source, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomix_mute_enabled_set(name, 
+        source, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_volume_get()
+##
+_dsl.dsl_pipeline_audiomix_volume_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_double)]
+_dsl.dsl_pipeline_audiomix_volume_get.restype = c_uint
+def dsl_pipeline_audiomix_volume_get(name, source):
+    global _dsl
+    volume = c_double(0)
+    result = _dsl.dsl_pipeline_audiomix_volume_get(name, 
+        source, DSL_DOUBLE_P(volume))
+    return int(result), volume.value
+
+##
+## dsl_pipeline_audiomix_volume_set()
+##
+_dsl.dsl_pipeline_audiomix_volume_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_double]
+_dsl.dsl_pipeline_audiomix_volume_set.restype = c_uint
+def dsl_pipeline_audiomix_volume_set(name, source, volume):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomix_volume_set(name, 
+        source, volume)
     return int(result)
 
 ##

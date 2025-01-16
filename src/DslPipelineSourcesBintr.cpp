@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -69,14 +69,15 @@ namespace DSL
 
         // Ensure that the correct Streammux is enabled for this type of Source        
         if (!GetStreammuxEnabled(DSL_VIDEOMUX) and 
-            !GetStreammuxEnabled(DSL_AUDIOMUX))
+            !GetStreammuxEnabled(DSL_AUDIOMUX) and
+            !GetAudiomixEnabled())
         {
             LOG_ERROR("Can't add Source '" << pChildSource->GetName() 
-                << "'. The Pipeline's Audiomux and Videomux are currently disabled'");
+                << "'. The Pipeline's Audiomuxer, Videomuxer, and Audiomixer are all disabled'");
             return false;
         }
         if ((pChildSource->GetMediaType() == DSL_MEDIA_TYPE_AUDIO_ONLY) and
-            !GetStreammuxEnabled(DSL_AUDIOMUX))
+            (!GetStreammuxEnabled(DSL_AUDIOMUX) and !GetAudiomixEnabled()))
         {
             LOG_ERROR("Can't add audio-only Source '" << pChildSource->GetName() 
                 << "' The Pipeline's Audiomux is currently disabled'");
@@ -90,7 +91,7 @@ namespace DSL
             return false;
         }
 
-        // Update the number of chile Sources based on media type.
+        // Update the number of child Sources based on media type.
         if (pChildSource->GetMediaType() & DSL_MEDIA_TYPE_AUDIO_ONLY)
         {
             m_numAudioSources++;
@@ -368,26 +369,54 @@ namespace DSL
     {
         LOG_FUNC();
         
-        std::string sinkPadName = 
-            "sink_" + std::to_string(pChildSource->GetRequestPadId());
-
         // If the Source supports Audio and the Audio Streammux is enabled 
-        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
-            GetStreammuxEnabled(DSL_AUDIOMUX))
+        if (pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY)
         {
-            if (!pChildSource->LinkToSinkMuxer(m_pAudiomux->Get(),
-                "audio_src", sinkPadName.c_str()))
+            if (GetStreammuxEnabled(DSL_AUDIOMUX))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to link audio for Child Source '" 
-                    << pChildSource->GetName() << "'");
-                return false;
+                std::string sinkPadName = 
+                    "sink_" + std::to_string(pChildSource->GetRequestPadId());
+
+                if (!pChildSource->LinkToSinkMuxer(m_pAudiomux->Get(),
+                    "audio_src", sinkPadName.c_str()))
+                {
+                    LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                        << "' failed to link audio for Child Source '" 
+                        << pChildSource->GetName() << "'");
+                    return false;
+                }
             }
+            if (GetAudiomixEnabled())
+            {
+                if (!pChildSource->LinkToSinkMuxer(m_pAudiomix->Get(),
+                    "audio_src", "sink_%u"))
+                {
+                    LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                        << "' failed to link audio for Child Source '" 
+                        << pChildSource->GetName() << "'");
+                    return false;
+                }
+                DSL_AUDIO_SOURCE_PTR pAudioSource = 
+                    std::dynamic_pointer_cast<AudioSourceBintr>(pChildSource);
+
+                // Set the mute and volume pad-properties to the current values
+                // as they may have been updated by the client before linking. 
+                if (!SetAudiomixMuteEnabled(pAudioSource, 
+                    pAudioSource->GetAudiomixMuteEnabled())
+                    or !SetAudiomixVolume(pAudioSource, 
+                    pAudioSource->GetAudiomixVolume()))
+                {
+                    return false;
+                }
+            }            
         }
         // If the Source supports Video and the Vidio Streammux is enabled 
         if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
             GetStreammuxEnabled(DSL_VIDEOMUX))
         {
+            std::string sinkPadName = 
+                "sink_" + std::to_string(pChildSource->GetRequestPadId());
+
             if (!pChildSource->LinkToSinkMuxer(m_pVideomux->Get(),
                 "video_src", sinkPadName.c_str()))
             {
@@ -405,20 +434,33 @@ namespace DSL
         LOG_FUNC();
         
         // If the Source supports Audio and the Audio Streammux is enabled 
-        if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) and 
-            GetStreammuxEnabled(DSL_AUDIOMUX))
+        if (pChildSource->GetMediaType() | DSL_MEDIA_TYPE_AUDIO_ONLY) 
         {
-            LOG_INFO("Unlinking child Source '" << pChildSource->GetName() 
-                << "' from AudioMuxer");
-
-            if (!pChildSource->UnlinkFromSinkMuxer(m_pAudiomux->Get(),
-                "audio_src"))
+            if (GetStreammuxEnabled(DSL_AUDIOMUX))
             {
-                LOG_ERROR("PipelineSourcesBintr '" << GetName() 
-                    << "' failed to unlink audio for Child Source '" 
-                    << pChildSource->GetName() << "'");
-                return false;
+                LOG_INFO("Unlinking child Source '" << pChildSource->GetName() 
+                    << "' from AudioMuxer");
+
+                if (!pChildSource->UnlinkFromSinkMuxer(m_pAudiomux->Get(),
+                    "audio_src"))
+                {
+                    LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                        << "' failed to unlink audio for Child Source '" 
+                        << pChildSource->GetName() << "'");
+                    return false;
+                }
             }
+            if (GetAudiomixEnabled())
+            {
+                if (!pChildSource->UnlinkFromSinkMuxer(m_pAudiomix->Get(),
+                    "audio_src"))
+                {
+                    LOG_ERROR("PipelineSourcesBintr '" << GetName() 
+                        << "' failed to link audio for Child Source '" 
+                        << pChildSource->GetName() << "'");
+                    return false;
+                }
+            }            
         }
         // If the Source supports Video and the Vidio Streammux is enabled 
         if ((pChildSource->GetMediaType() | DSL_MEDIA_TYPE_VIDEO_ONLY) and 
@@ -436,6 +478,162 @@ namespace DSL
                 return false;
             }
         }
+        return true;
+    }
+
+    bool PipelineSourcesBintr::GetAudiomixMuteEnabled(
+        DSL_AUDIO_SOURCE_PTR pChildSource, boolean* enabled)
+    {
+        LOG_FUNC();
+        
+        // Check for the relationship first
+        if (!IsChild(pChildSource))
+        {
+            LOG_ERROR("Source '" << pChildSource->GetName() 
+                << "' is not a child of '" << GetName() << "'");
+            return false;
+        }
+        if (!GetAudiomixEnabled())
+        {
+            LOG_ERROR("The Audiomuxer is not enabled for '" << GetName() << "'");
+            return false;
+        }
+
+        *enabled = pChildSource->GetAudiomixMuteEnabled();
+
+        // call the parent class to complete the link-to-sink
+        return true;
+    }
+
+    bool PipelineSourcesBintr::SetAudiomixMuteEnabled(
+        DSL_AUDIO_SOURCE_PTR pChildSource, boolean enabled)
+    {
+        LOG_FUNC();
+        
+        // Check for the relationship first
+        if (!IsChild(pChildSource))
+        {
+            LOG_ERROR("Source '" << pChildSource->GetName() 
+                << "' is not a child of '" << GetName() << "'");
+            return false;
+        }
+        if (!GetAudiomixEnabled())
+        {
+            LOG_ERROR("The Audiomuxer is not enabled for '" << GetName() << "'");
+            return false;
+        }
+        
+        // If we're currently linked, updated the pad property
+        if (m_isLinked)
+        {
+            // Get a reference to the Source's audio-src pad
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                pChildSource->GetGstElement(), "audio_src");
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Failed to get static source pad for GstNodetr '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+            
+            // Get a reference to the Mixer's sink pad that is connected
+            // to the Source's pad
+            GstPad* pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
+            if (!pRequestedSinkPad)
+            {
+                LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+            g_object_set(pRequestedSinkPad, "mute", enabled, NULL);
+
+            // unreference both the static source pad and requested sink
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pRequestedSinkPad);
+        }
+        // Call on the Source to save the current enabled setting
+        pChildSource->SetAudiomixMuteEnabled(enabled);
+
+        // call the parent class to complete the link-to-sink
+        return true;
+    }
+
+    bool PipelineSourcesBintr::GetAudiomixVolume(
+        DSL_AUDIO_SOURCE_PTR pChildSource, double* volume)
+    {
+        LOG_FUNC();
+        
+        // Check for the relationship first
+        if (!IsChild(pChildSource))
+        {
+            LOG_ERROR("Source '" << pChildSource->GetName() 
+                << "' is not a child of '" << GetName() << "'");
+            return false;
+        }
+        if (!GetAudiomixEnabled())
+        {
+            LOG_ERROR("The Audiomuxer is not enabled for '" << GetName() << "'");
+            return false;
+        }
+
+        // Get the current value saved by Audio Source
+        *volume = pChildSource->GetAudiomixVolume();
+
+        // call the parent class to complete the link-to-sink
+        return true;
+    }
+
+    bool PipelineSourcesBintr::SetAudiomixVolume(
+        DSL_AUDIO_SOURCE_PTR pChildSource, double volume)
+    {
+        LOG_FUNC();
+        
+        // Check for the relationship first
+        if (!IsChild(pChildSource))
+        {
+            LOG_ERROR("Source '" << pChildSource->GetName() 
+                << "' is not a child of '" << GetName() << "'");
+            return false;
+        }
+        if (!GetAudiomixEnabled())
+        {
+            LOG_ERROR("The Audiomuxer is not enabled for '" << GetName() << "'");
+            return false;
+        }
+
+        // If we're currently linked, updated the pad property
+        if (m_isLinked)
+        {
+            // Get a reference to the Source's audio-src pad
+            GstPad* pStaticSrcPad = gst_element_get_static_pad(
+                pChildSource->GetGstElement(), "audio_src");
+            if (!pStaticSrcPad)
+            {
+                LOG_ERROR("Failed to get static source pad for GstNodetr '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+            
+            // Get a reference to the Mixer's sink pad that is connected
+            // to the Source's pad
+            GstPad* pRequestedSinkPad = gst_pad_get_peer(pStaticSrcPad);
+            if (!pRequestedSinkPad)
+            {
+                LOG_ERROR("Failed to get requested sink pad peer for GstNodetr '" 
+                    << pChildSource->GetName() << "'");
+                return false;
+            }
+            g_object_set(pRequestedSinkPad, "volume", volume, NULL);
+
+            // unreference both the static source pad and requested sink pad
+            gst_object_unref(pStaticSrcPad);
+            gst_object_unref(pRequestedSinkPad);
+        }
+
+        // Call on the Source to save the current volume setting
+        pChildSource->SetAudiomixVolume(volume);
+
+        // call the parent class to complete the link-to-sink
         return true;
     }
 
@@ -473,31 +671,23 @@ namespace DSL
         }
         if (streammux == DSL_VIDEOMUX)
         {
+            std::string videoStreammuxName = GetName() + "-video";
             m_pVideomux = (enabled)
-                ? DSL_STREAMMUX_NEW("video-streammux", 
+                ? DSL_STREAMMUX_NEW(videoStreammuxName.c_str(), 
                     GetGstObject(), m_uniquePipelineId, "video_src")
                 : nullptr;
         }
         else
         {
+            std::string audioStreammuxName = GetName() + "-audio";
             m_pAudiomux = (enabled)
-                ? DSL_STREAMMUX_NEW("audio-streammux", 
+                ? DSL_STREAMMUX_NEW(audioStreammuxName.c_str(), 
                     GetGstObject(), m_uniquePipelineId, "audio_src")
                 : nullptr;
         }
 
-        // Update the media-type based on the enabled state of both muxers.
-        uint mediaType = 0;
-        if (m_pVideomux)
-        {
-            mediaType = mediaType | DSL_MEDIA_TYPE_VIDEO_ONLY;
-        }
-        if (m_pAudiomux)
-        {
-            mediaType = mediaType | DSL_MEDIA_TYPE_AUDIO_ONLY;
-        }
-        m_mediaType = mediaType;
-        
+        UpdateMediaType();
+
         return true;
     }
 
@@ -532,6 +722,46 @@ namespace DSL
         return true;
     }
 
+    boolean PipelineSourcesBintr::GetAudiomixEnabled()
+    {
+        LOG_FUNC();
+
+        return (boolean)(m_pAudiomix != nullptr);
+    }
+
+    bool PipelineSourcesBintr::SetAudiomixEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+
+        if (m_pChildSources.size())
+        {
+            LOG_ERROR("Can't update enabled property for Audiomixer '" 
+                << GetName() << "' after Sources have been added");
+            return false;
+        }
+        if (enabled == (boolean)(m_pAudiomix != nullptr))
+        {
+            LOG_ERROR("Can't set enabled property for Audiomixer '" 
+                << GetName() << "' to its current state of " << enabled);
+            return false;
+        }
+        if (enabled and GetStreammuxEnabled(DSL_AUDIOMUX))
+        {
+            LOG_ERROR("Can't set enabled property for Audiomixer '" 
+                << GetName() << "' Audiomuxer is currently enabled");
+            return false;
+        }
+        m_pAudiomix = (enabled)
+            ? DSL_AUDIOMIX_NEW(GetCStrName(), 
+                GetGstObject(), "audio_src")
+            : nullptr;
+
+        // Update the media-type based on the enabled state of both muxers.
+        UpdateMediaType();
+
+        return true;
+    }
+
     void PipelineSourcesBintr::EosAll()
     {
         LOG_FUNC();
@@ -560,6 +790,8 @@ namespace DSL
 
     void PipelineSourcesBintr::DisableEosConsumers()
     {
+        LOG_FUNC();
+        
         // Call on all Sources to disable their EOS consumer if one
         // has been added.
         for (auto const& imap: m_pChildSources)
@@ -578,5 +810,27 @@ namespace DSL
         }
     }
 
+    void PipelineSourcesBintr::UpdateMediaType()
+    {
+        LOG_FUNC();
+        
+        // Update the media-type based on the enabled state of both muxers 
+        // and audio-mixer.
+        uint mediaType = 0;
+        if (m_pVideomux)
+        {
+            mediaType = mediaType | DSL_MEDIA_TYPE_VIDEO_ONLY;
+        }
+        if (m_pAudiomux)
+        {
+            mediaType = mediaType | DSL_MEDIA_TYPE_AUDIO_ONLY;
+        }
+        if (m_pAudiomix)
+        {
+            mediaType = mediaType | DSL_MEDIA_TYPE_AUDIO_ONLY;
+        }
+        m_mediaType = mediaType;
+        LOG_INFO("Media type for PipelineSourcesBintr set to " << m_mediaType);
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -500,9 +500,11 @@ namespace DSL
         }
         
         /**
-         * @brief Creates a new Ghost Sink pad for this Gst Element
-         * @param[in] padname which pad to add to, either "sink" or "src"
-         * @throws a general exception on failure
+         * @brief Creates a new Ghost pad for this Nodetr and adds it
+         * to its paranet. 
+         * @param[in] padname which pad to create the ghostpad for, and
+         * name to use for the ghostpad. 
+         * @throws a general exception on failure.
          */
         void AddGhostPadToParent(const char* padname)
         {
@@ -525,9 +527,11 @@ namespace DSL
         }
 
         /**
-         * @brief Creates a new Ghost Sink pad for this Gst Element
-         * @param[in] padname which pad to add to, either "sink" or "src"
-         * @throws a general exception on failure
+         * @brief Creates a new Ghost Pad for this Gst Nodetr and adds it to 
+         * its parent.
+         * @param[in] padname which pad to create the ghostpad for.
+         * @param[in] ghostPadname name to give the ghostpad to add.
+         * @throws a general exception on failure.
          */
         void AddGhostPadToParent(const char* padname, const char* ghostPadname)
         {
@@ -549,16 +553,22 @@ namespace DSL
             gst_object_unref(pStaticPad);
         }
 
-        void RemoveGhostPadFromParent(const char* padname)
+        /**
+         * @brief Removed a Ghost Pad that was previously added to this Notetr's 
+         * Parent.
+         * @param[in] ghostPadname name of the ghostPad to remove.
+         * @throws a general exception on failure.
+         */
+        void RemoveGhostPadFromParent(const char* ghostPadName)
         {
             LOG_FUNC();
 
             GstPad* pStaticPad = gst_element_get_static_pad(
-                GST_ELEMENT(GetParentGstObject()), padname);       
+                GST_ELEMENT(GetParentGstObject()), ghostPadName);       
 
             if (!pStaticPad)
             {
-                LOG_ERROR("Failed to get Static Pad '" << padname 
+                LOG_ERROR("Failed to get Static Pad '" << ghostPadName 
                     << "' for parent of element'" << GetName() << "'");
                 throw std::exception();
             }
@@ -566,7 +576,7 @@ namespace DSL
             if (!gst_element_remove_pad(GST_ELEMENT(GetParentGstObject()), 
                 pStaticPad))
             {
-                LOG_ERROR("Failed to remove Pad '" << padname 
+                LOG_ERROR("Failed to remove Pad '" << ghostPadName 
                     << "' for element'" << GetName() << "'");
                 throw std::exception();
             }

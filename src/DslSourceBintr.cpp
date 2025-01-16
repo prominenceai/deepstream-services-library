@@ -1,8 +1,8 @@
-/*
+    /*
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -996,6 +996,8 @@ namespace DSL
         , m_isAudioFullyLinked(false)
         , m_bufferOutRate(DSL_AUDIO_RESAMPLE_RATE_DEFAULT)
         , m_bufferOutChannels(0)
+        , m_audiomixMuteEnabled(false)
+        , m_audiomixVolume(1.0)
     {
         LOG_FUNC();
 
@@ -1041,7 +1043,6 @@ namespace DSL
 
         m_pAudioOutResample = DSL_ELEMENT_EXT_NEW("audioresample", 
            GetCStrName(), "audio-out");
-
         
         // ---- Caps Filter Setup
 
@@ -1054,7 +1055,7 @@ namespace DSL
         }
 
         LOG_INFO("");
-        LOG_INFO("Initial property values for VideoSourceBintr '" << m_name << "'");
+        LOG_INFO("Initial property values for AudioSourceBintr '" << m_name << "'");
         LOG_INFO("  media-type        : " << m_audioMediaString);
         LOG_INFO("  buffer-out        : ");
         LOG_INFO("    format          : " << m_bufferOutFormat);
@@ -1215,7 +1216,11 @@ namespace DSL
         // iterate through the list of linked Elements, unlinking each
         for (auto const& ivec: m_linkedCommonAudioElements)
         {
-            ivec->UnlinkFromSink();
+            // all but the tail element will be Linked to Sink
+            if (ivec->IsLinkedToSink())
+            {
+                ivec->UnlinkFromSink();
+            }
         }
         m_linkedCommonAudioElements.clear();
 
@@ -1297,6 +1302,34 @@ namespace DSL
         m_pAudioOutCapsFilter->SetAttribute("caps", &AudioCaps);
         
         return true;
+    }
+
+    boolean AudioSourceBintr::GetAudiomixMuteEnabled()
+    {
+        LOG_FUNC();
+
+        return m_audiomixMuteEnabled;
+    }
+
+    void AudioSourceBintr::SetAudiomixMuteEnabled(boolean enabled)
+    {
+        LOG_FUNC();
+
+        m_audiomixMuteEnabled = enabled;
+    }
+
+    double AudioSourceBintr::GetAudiomixVolume()
+    {
+        LOG_FUNC();
+
+        return m_audiomixVolume;
+    }
+
+    void AudioSourceBintr::SetAudiomixVolume(double volume)
+    {
+        LOG_FUNC();
+
+        m_audiomixVolume = volume;
     }
 
     //*********************************************************************************

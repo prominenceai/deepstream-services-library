@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -543,4 +543,290 @@ SCENARIO( "The Pipeline Streammuxer's nvbuf-memory-type can be read and updated"
     }
 }
 
+SCENARIO( "An Audio Streammixer can be enabled and disable successfully",
+    "[PipelineSourcesBintr]" )
+{
+    GIVEN( "A PipelineSourcesBintr with Audiomixer diabled by default" ) 
+    {
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
+
+        REQUIRE( pPipelineSourcesBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, 
+            false) == true );
+
+        REQUIRE( pPipelineSourcesBintr->GetAudiomixEnabled() == false );
+                    
+        WHEN( "Whe the PipelineSourcesBintr's Audiomixer is enabled" )
+        {
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixEnabled(true) == true );
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixEnabled() == true );
+
+            THEN( "The PipelineSourcesBintr's Audiomixer can be succesfully disabled" )
+            {
+                REQUIRE( pPipelineSourcesBintr->SetAudiomixEnabled(false) == true );
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixEnabled() == false );
+            }
+        }
+    }
+}
+
+SCENARIO( "Linking multiple Sources to an Audio Streammixer is managed correctly",
+    "[PipelineSourcesBintr]" )
+{
+    GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
+    {
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
+
+        REQUIRE( pPipelineSourcesBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, 
+            false) == true );
+
+        REQUIRE( pPipelineSourcesBintr->SetAudiomixEnabled(true) == true );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr0 = DSL_ALSA_SOURCE_NEW(
+            sourceName0.c_str(), "default");
+        REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr1  = DSL_ALSA_SOURCE_NEW(
+            sourceName1.c_str(), "default");
+        REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr2 = DSL_ALSA_SOURCE_NEW(
+            sourceName2.c_str(), "default");
+        REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
+
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+        
+        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
+                    
+        WHEN( "All Sources are linked to the Streammux" )
+        {
+            REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
+            
+            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
+            {
+                REQUIRE( pSourceBintr0->IsInUse() == true );
+                REQUIRE( pSourceBintr0->GetRequestPadId() == 0 );
+                REQUIRE( pSourceBintr0->IsLinked() == true );
+                REQUIRE( pSourceBintr1->IsInUse() == true );
+                REQUIRE( pSourceBintr1->GetRequestPadId() == 1 );
+                REQUIRE( pSourceBintr1->IsLinked() == true );
+                REQUIRE( pSourceBintr2->IsInUse() == true );
+                REQUIRE( pSourceBintr2->GetRequestPadId() == 2 );
+                REQUIRE( pSourceBintr2->IsLinked() == true );
+            }
+        }
+    }
+}
+
+SCENARIO( "Unlinking multiple Sources from an Audio Streammixer is managed correctly", 
+    "[PipelineSourcesBintr]" )
+{
+    GIVEN( "A Pipeline Sources Bintr with multiple Sources is linked to the Streammux" ) 
+    {
+
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
+
+        REQUIRE( pPipelineSourcesBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, 
+            false) == true );
+
+        REQUIRE( pPipelineSourcesBintr->SetAudiomixEnabled(true) == true );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr0 = DSL_ALSA_SOURCE_NEW(
+            sourceName0.c_str(), "default");
+        REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr1  = DSL_ALSA_SOURCE_NEW(
+            sourceName1.c_str(), "default");
+        REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr2 = DSL_ALSA_SOURCE_NEW(
+            sourceName2.c_str(), "default");
+        REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
+
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+                    
+        REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
+
+        WHEN( "All Sources are unlinked and removed from the Streammux" )
+        {
+            pPipelineSourcesBintr->UnlinkAll();
+            
+            REQUIRE( pPipelineSourcesBintr->RemoveChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+            REQUIRE( pPipelineSourcesBintr->RemoveChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+            REQUIRE( pPipelineSourcesBintr->RemoveChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+
+            THEN( "The Pipeline Sources Bintr and Sources are updated correctly" )
+            {
+                REQUIRE( pSourceBintr0->IsLinked() == false );
+                REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+                REQUIRE( pSourceBintr1->IsLinked() == false );
+                REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+                REQUIRE( pSourceBintr2->IsLinked() == false );
+                REQUIRE( pSourceBintr2->GetRequestPadId() == -1 );
+            }
+        }
+    }
+}
+
+SCENARIO( "The Audio Streammixer can mute its sink pads correctly",
+    "[error]" )
+{
+    GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
+    {
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
+
+        REQUIRE( pPipelineSourcesBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, 
+            false) == true );
+
+        REQUIRE( pPipelineSourcesBintr->SetAudiomixEnabled(true) == true );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr0 = DSL_ALSA_SOURCE_NEW(
+            sourceName0.c_str(), "default");
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr1  = DSL_ALSA_SOURCE_NEW(
+            sourceName1.c_str(), "default");
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr2 = DSL_ALSA_SOURCE_NEW(
+            sourceName2.c_str(), "default");
+
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+        
+        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
+                    
+        WHEN( "All Sources are linked and muted" )
+        {
+            REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
+            
+            // check the defaults
+            boolean enabled;
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixMuteEnabled(pSourceBintr0,
+                &enabled) == true );
+            REQUIRE( enabled == 0 );
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixMuteEnabled(pSourceBintr1,
+                &enabled) == true );
+            REQUIRE( enabled == 0 );
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixMuteEnabled(pSourceBintr2,
+                &enabled) == true );
+            REQUIRE( enabled == 0 );
+
+            // Mute all
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixMuteEnabled(pSourceBintr0,
+                true) == true );
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixMuteEnabled(pSourceBintr1,
+                true) == true );
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixMuteEnabled(pSourceBintr2,
+                true) == true );
+
+
+            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
+            {
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixMuteEnabled(pSourceBintr0,
+                    &enabled) == true );
+                REQUIRE( enabled == 1 );
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixMuteEnabled(pSourceBintr1,
+                    &enabled) == true );
+                REQUIRE( enabled == 1 );
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixMuteEnabled(pSourceBintr2,
+                    &enabled) == true );
+                REQUIRE( enabled == 1 );
+
+            }
+        }
+    }
+}
+
+SCENARIO( "The Audio Streammixer can change the volume on its sink pads correctly",
+    "[error]" )
+{
+    GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
+    {
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
+
+        REQUIRE( pPipelineSourcesBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, 
+            false) == true );
+
+        REQUIRE( pPipelineSourcesBintr->SetAudiomixEnabled(true) == true );
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr0 = DSL_ALSA_SOURCE_NEW(
+            sourceName0.c_str(), "default");
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr1  = DSL_ALSA_SOURCE_NEW(
+            sourceName1.c_str(), "default");
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr2 = DSL_ALSA_SOURCE_NEW(
+            sourceName2.c_str(), "default");
+
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == true );
+        REQUIRE( pPipelineSourcesBintr->AddChild(
+            std::dynamic_pointer_cast<SourceBintr>(pSourceBintr2)) == true );
+        
+        REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 3 );
+                    
+        WHEN( "All Sources are linked and muted" )
+        {
+            REQUIRE( pPipelineSourcesBintr->LinkAll() == true );
+            
+            // check the defaults
+            double volume;
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixVolume(pSourceBintr0,
+                &volume) == true );
+            REQUIRE( volume == 1.0 );
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixVolume(pSourceBintr1,
+                &volume) == true );
+            REQUIRE( volume == 1.0 );
+            REQUIRE( pPipelineSourcesBintr->GetAudiomixVolume(pSourceBintr2,
+                &volume) == true );
+            REQUIRE( volume == 1.0 );
+
+            // Update all
+            double newVolume(2.34);
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixVolume(pSourceBintr0,
+                newVolume) == true );
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixVolume(pSourceBintr1,
+                newVolume) == true );
+            REQUIRE( pPipelineSourcesBintr->SetAudiomixVolume(pSourceBintr2,
+                newVolume) == true );
+
+
+            THEN( "The Pipeline Sources Bintr and Source are updated correctly" )
+            {
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixVolume(pSourceBintr0,
+                    &volume) == true );
+                REQUIRE( volume == newVolume );
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixVolume(pSourceBintr1,
+                    &volume) == true );
+                REQUIRE( volume == newVolume );
+                REQUIRE( pPipelineSourcesBintr->GetAudiomixVolume(pSourceBintr2,
+                    &volume) == true );
+                REQUIRE( volume == newVolume );
+
+            }
+        }
+    }
+}
 
