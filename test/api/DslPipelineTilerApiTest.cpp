@@ -26,9 +26,24 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslApi.h"
 
-#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(500)
+#define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
-SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]" )
+static void show_source_listener(const wchar_t* tiler, 
+    const wchar_t* source, int stream_id, void* client_data)
+{
+    if (stream_id == -1)
+    {
+        std::wcout << "Tiler '" << tiler << "' is showing all sources" 
+            << std::endl;
+    }
+    else
+    {
+        std::wcout << "Tiler '" << tiler << "' is showing source '" 
+            << source << "'" << std::endl;; 
+    }
+}
+
+SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[error]" )
 {
     GIVEN( "A Pipeline with four sources and minimal components" ) 
     {
@@ -68,6 +83,8 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
         // new tiler for this scenario
         REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
     
+        REQUIRE( dsl_tiler_source_show_listener_add(tilerName.c_str(), 
+            show_source_listener, NULL) == DSL_RESULT_SUCCESS );
             
         const wchar_t* components[] = {L"test-uri-source-1", L"test-uri-source-2", L"test-uri-source-3", 
             L"tiler", L"egl-sink", NULL};
@@ -143,7 +160,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
                 
                 // Show cycle with timeout must succeed
                 REQUIRE( dsl_tiler_source_show_cycle(tilerName.c_str(), 
-                    1) == DSL_RESULT_SUCCESS);
+                    2) == DSL_RESULT_SUCCESS);
                 
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
                 REQUIRE( dsl_tiler_source_show_all(tilerName.c_str()) == DSL_RESULT_SUCCESS);
@@ -151,7 +168,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[PipelineTiler]
 
                 // Selecting an open tile must fail
                 REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), 
-                    sinkW-10, sinkH-10, sinkW, sinkH, 1) == DSL_RESULT_SUCCESS);
+                    sinkW-10, sinkH-10, sinkW, sinkH, 1) == DSL_RESULT_TILER_SET_FAILED);
 
                 // Selecting a valid tile must succeed
                 REQUIRE( dsl_tiler_source_show_select(tilerName.c_str(), 

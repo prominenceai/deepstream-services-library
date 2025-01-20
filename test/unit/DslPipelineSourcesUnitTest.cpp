@@ -684,7 +684,7 @@ SCENARIO( "Unlinking multiple Sources from an Audio Streammixer is managed corre
 }
 
 SCENARIO( "The Audio Streammixer can mute its sink pads correctly",
-    "[error]" )
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
     {
@@ -757,7 +757,7 @@ SCENARIO( "The Audio Streammixer can mute its sink pads correctly",
 }
 
 SCENARIO( "The Audio Streammixer can change the volume on its sink pads correctly",
-    "[error]" )
+    "[PipelineSourcesBintr]" )
 {
     GIVEN( "A Pipeline Sources Bintr with multiple Source in memory" ) 
     {

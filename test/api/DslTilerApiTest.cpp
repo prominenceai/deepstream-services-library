@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -418,6 +418,49 @@ SCENARIO( "A Tiled Display can Set and Get all properties", "[tiler-api]" )
     }
 }
 
+static void source_show_listener_cb(const wchar_t* name,
+    const wchar_t* source, int stream_id, void* client_data)
+{
+}
+
+SCENARIO( "A source-show-listener can be added and removed", "[tiler-api]" )
+{
+    GIVEN( "A PGIE in memory" ) 
+    {
+        std::wstring tilerName(L"tiler");
+        uint width(1280);
+        uint height(720);
+
+        REQUIRE( dsl_tiler_new(tilerName.c_str(), width, height) == DSL_RESULT_SUCCESS );
+
+        WHEN( "A model-update-listener is added" )
+        {
+            REQUIRE( dsl_tiler_source_show_listener_add(tilerName.c_str(),
+                source_show_listener_cb, (void*)0x12345678) == DSL_RESULT_SUCCESS );
+
+            // second call must fail
+            REQUIRE( dsl_tiler_source_show_listener_add(tilerName.c_str(),
+                source_show_listener_cb, (void*)0x12345678) == 
+                    DSL_RESULT_TILER_CALLBACK_ADD_FAILED );
+
+            THEN( "The same listener can be removed again" ) 
+            {
+                REQUIRE( dsl_tiler_source_show_listener_remove(
+                    tilerName.c_str(), source_show_listener_cb) == 
+                        DSL_RESULT_SUCCESS );
+
+                // second call must fail
+                REQUIRE( dsl_tiler_source_show_listener_remove(
+                    tilerName.c_str(), source_show_listener_cb) == 
+                        DSL_RESULT_TILER_CALLBACK_REMOVE_FAILED );
+
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+            }
+        }
+    }
+}    
+
+
 SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
 {
     GIVEN( "An empty list of Components" ) 
@@ -493,6 +536,14 @@ SCENARIO( "The Tiler API checks for NULL input parameters", "[tiler-api]" )
                 REQUIRE( dsl_tiler_pph_remove(tilerName.c_str(), 
                     NULL, DSL_PAD_SRC) == DSL_RESULT_INVALID_INPUT_PARAM );
 
+                REQUIRE( dsl_tiler_source_show_listener_add(NULL, NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_tiler_source_show_listener_add(tilerName.c_str(), 
+                    NULL, NULL) ==  DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_tiler_source_show_listener_remove(NULL, NULL) == 
+                    DSL_RESULT_INVALID_INPUT_PARAM );                
+                REQUIRE( dsl_tiler_source_show_listener_remove(tilerName.c_str(), 
+                    NULL) == DSL_RESULT_INVALID_INPUT_PARAM );                
                 REQUIRE( dsl_component_list_size() == 0 );
             }
         }
