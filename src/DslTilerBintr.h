@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2021, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -114,20 +114,20 @@ namespace DSL
          * @brief Gets the current show-source setting for the TilerBintr
          * @return the current show-source setting, -1 equals all sources/tiles shown
          */
-        void GetShowSource(int* sourceId, uint* timeout);
+        void GetShowSource(int* streamId, uint* timeout);
         
         /**
          * @brief Sets the current show-source setting for the TilerBintr to a 
          * single source
          * @param[in] the new show-source setting to use
-         * Note: sourceId must be less than current batch-size, which is 0 until 
+         * Note: streamId must be less than current batch-size, which is 0 until 
          * the Pipeline is linked/played
          * @param[in] timeout the time in seconds to show the current source
          * @param[in] hasPrecedence if true will take precedence over a currently
          * showing single source.
          * @return true if set value is successful, false otherwise.
          */
-        bool SetShowSource(int sourceId, uint timeout, bool hasPrecedence);
+        bool SetShowSource(int streamId, uint timeout, bool hasPrecedence);
         
         /**
          * @brief Handler routine for show-source timer experation
@@ -147,6 +147,22 @@ namespace DSL
         bool CycleAllSources(uint timeout);
         
         /**
+         * @brief Adds a Show Source Listener to this TilerBintr
+         * @param listener client listener function to add
+         * @param clientData opaque pointer to client data to return on callback
+         * @return true on successful addition, false otherwise.
+         */ 
+        bool AddShowSourceListener(dsl_tiler_source_show_listener_cb listener, 
+            void* clientData);
+
+        /**
+         * @brief Removes a Show Source Listener from this TilerBintr.
+         * @param listener client listener function to remove.
+         * @return true on successful removal, false otherwise.
+         */ 
+        bool RemoveShowSourceListener(dsl_tiler_source_show_listener_cb listener);
+
+        /**
          * @brief Sets the GPU ID for all Elementrs
          * @return true if successfully set, false otherwise.
          */
@@ -161,6 +177,14 @@ namespace DSL
         bool SetNvbufMemType(uint nvbufMemType);
         
     private:
+
+        /**
+         * @brief Sets the plugin property and notifies all liteners.
+         * @param[in] streamId id of the source stream to be shown.
+         * -1 = show all sources.
+         * @return true is successfully set, false otherwise.
+         */
+        bool SetShowSource(int streamId);
     
         /**
          * @brief number of rows for the TilerBintr
@@ -217,7 +241,7 @@ namespace DSL
         /**
          * @brief current show-source id, -1 == show-a;-sources
          */
-        int m_showSourceId;
+        int m_showStreamId;
         
         /**
          * @brief client provided timeout in seconds
@@ -238,6 +262,12 @@ namespace DSL
          * @brief true if source cycling is enabled, false otherwise
          */
         bool m_showSourceCycle;
+        
+        /**
+         * @brief map of all client model update listeners.
+         */
+        std::map<dsl_tiler_source_show_listener_cb, void*> m_showSourceListeners;
+        
     };
 
     //----------------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 ################################################################################
 # The MIT License
 #
-# Copyright (c) 2019-2024, Prominence AI, Inc.
+# Copyright (c) 2019-2025, Prominence AI, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -150,6 +150,18 @@ def xwindow_button_event_handler(button, x_pos, y_pos, client_data):
         # and the current window dimensions obtained from the XWindow
         dsl_tiler_source_show_select('tiler', 
             x_pos, y_pos, width, height, timeout=SHOW_SOURCE_TIMEOUT)
+        
+##
+# Function to be called when the Tiler switches to a new 
+# single Source stream or back to all Sources
+##
+def source_show_listener(name, source, stream_id, client_data):
+    
+    if stream_id != -1:
+        print(name, " is now showing Source =", source,)
+    else:
+        print(name, " is now showing all sources")    
+
 
 def main(args):
 
@@ -241,6 +253,10 @@ def main(args):
         retval = dsl_tiler_new('tiler', TILER_WIDTH, TILER_HEIGHT)
         if retval != DSL_RETURN_SUCCESS:
             break
+
+        # Add the show-source listener function defined above
+        retval = dsl_tiler_source_show_listener_add('tiler', 
+            source_show_listener, None)
         
         #-----------------------------------------------------------
         # IMPORTANT!

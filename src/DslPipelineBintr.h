@@ -418,11 +418,6 @@ namespace DSL
         static std::vector<bool> m_usedPipelineIds;
         
         /**
-         * @brief unique pipeline-id for this PipelineBintr
-         */
-        uint m_pipelineId;
-
-        /**
          * @brief parent bin for all Source bins in this PipelineBintr
          */
         DSL_PIPELINE_SOURCES_PTR m_pPipelineSourcesBintr;

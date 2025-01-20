@@ -8643,6 +8643,32 @@ DslReturnType dsl_tiler_source_show_cycle(const wchar_t* name, uint timeout)
     return DSL::Services::GetServices()->TilerSourceShowCycle(cstrName.c_str(), timeout);
 }
 
+DslReturnType dsl_tiler_source_show_listener_add(const wchar_t* name, 
+    dsl_tiler_source_show_listener_cb listener, void* client_data)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        TilerSourceShowListenerAdd(cstrName.c_str(), listener, client_data);
+}
+
+DslReturnType dsl_tiler_source_show_listener_remove(const wchar_t* name, 
+    dsl_tiler_source_show_listener_cb listener)
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(listener);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+
+    return DSL::Services::GetServices()->
+        TilerSourceShowListenerRemove(cstrName.c_str(), listener);
+}
+
 DslReturnType dsl_tiler_pph_add(const wchar_t* name, const wchar_t* handler, uint pad)
 {
     RETURN_IF_PARAM_IS_NULL(name);

@@ -924,8 +924,9 @@ namespace DSL
             
         if (m_pRemuxerBintr)
         {
-            // propagate the link method an batch size to all child branches 
-            // of the Remuxer
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pRemuxerBintr->SetPipelineId(m_pipelineId);
             m_pRemuxerBintr->SetLinkMethod(m_linkMethod);
             m_pRemuxerBintr->SetBatchSize(m_videoBatchSize);
             
@@ -944,7 +945,9 @@ namespace DSL
 
         if (m_pPreprocBintr)
         {
-            // propagate the link method an batch size to the  Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pPreprocBintr->SetPipelineId(m_pipelineId);
             m_pPreprocBintr->SetLinkMethod(m_linkMethod);
             m_pPreprocBintr->SetBatchSize(m_videoBatchSize);
             if (!m_pPreprocBintr->LinkAll() or
@@ -962,7 +965,9 @@ namespace DSL
         {
             for (auto const &imap: m_pPrimaryVideoInferBintrsIndexed)
             {
-                // propagate the link method an batch size to the  Child Bintr
+                // propagate the pipeline-id, link-method, and batch size to the
+                // Child Bintr.
+                imap.second->SetPipelineId(m_pipelineId);
                 imap.second->SetLinkMethod(m_linkMethod);
                 
                 // Set the m_PrimaryInferBintrs batch size to the current stream muxer
@@ -991,7 +996,9 @@ namespace DSL
         
         if (m_pTrackerBintr)
         {
-            // propagate the link method an batch size to the  Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pTrackerBintr->SetPipelineId(m_pipelineId);
             m_pTrackerBintr->SetLinkMethod(m_linkMethod);
             m_pTrackerBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1009,7 +1016,9 @@ namespace DSL
         
         if (m_pSecondaryInfersBintr)
         {
-            // propagate the link method an batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pSecondaryInfersBintr->SetPipelineId(m_pipelineId);
             m_pSecondaryInfersBintr->SetLinkMethod(m_linkMethod);
             m_pSecondaryInfersBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1029,12 +1038,14 @@ namespace DSL
 
         if (m_pSegVisualBintr)
         {
-            // propagate the link method an batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pSegVisualBintr->SetPipelineId(m_pipelineId);
             m_pSegVisualBintr->SetLinkMethod(m_linkMethod);
+            m_pSegVisualBintr->SetBatchSize(m_videoBatchSize);
             
             // LinkAll Segmentation Visualizer Elementrs and add as the next 
             // component in the Branch
-            m_pSegVisualBintr->SetBatchSize(m_videoBatchSize);
             if (!m_pSegVisualBintr->LinkAll() or
                 (m_linkedVideoComps.size() and 
                 !m_linkedVideoComps.back()->LinkToSink(m_pSegVisualBintr)))
@@ -1049,7 +1060,9 @@ namespace DSL
 
         if (m_pOfvBintr)
         {
-            // propagate the link method an batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pOfvBintr->SetPipelineId(m_pipelineId);
             m_pOfvBintr->SetLinkMethod(m_linkMethod);
             m_pOfvBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1070,7 +1083,9 @@ namespace DSL
         // mutually exclusive with Demuxer
         if (m_pTilerBintr)
         {
-            // propagate the link method an batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pTilerBintr->SetPipelineId(m_pipelineId);
             m_pTilerBintr->SetLinkMethod(m_linkMethod);
             m_pTilerBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1109,7 +1124,9 @@ namespace DSL
         
         if (m_pOsdBintr)
         {
-            // propagate the link method and batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pOsdBintr->SetPipelineId(m_pipelineId);
             m_pOsdBintr->SetLinkMethod(m_linkMethod);
             m_pOsdBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1127,7 +1144,9 @@ namespace DSL
 
         if (m_pVideoDemuxerBintr)
         {
-            // propagate the link method and batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pVideoDemuxerBintr->SetPipelineId(m_pipelineId);
             m_pVideoDemuxerBintr->SetLinkMethod(m_linkMethod);
             m_pVideoDemuxerBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1146,7 +1165,9 @@ namespace DSL
 
         if (m_pSplitterBintr)
         {
-            // propagate the link method and batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pVideoDemuxerBintr->SetPipelineId(m_pipelineId);
             m_pSplitterBintr->SetLinkMethod(m_linkMethod);
             m_pSplitterBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1166,7 +1187,9 @@ namespace DSL
         // mutually exclusive with Demuxer
         if (m_pMultiVideoSinksBintr)
         {
-            // propagate the link method and batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            m_pMultiVideoSinksBintr->SetPipelineId(m_pipelineId);
             m_pMultiVideoSinksBintr->SetLinkMethod(m_linkMethod);
             m_pMultiVideoSinksBintr->SetBatchSize(m_videoBatchSize);
             
@@ -1195,7 +1218,9 @@ namespace DSL
         
         for (auto const &imap: m_audioCompsIndexed)
         {
-            // propagate the link method and batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            imap.second->SetPipelineId(m_pipelineId);
             imap.second->SetLinkMethod(m_linkMethod);
             imap.second->SetBatchSize(m_audioBatchSize);
             
@@ -1212,7 +1237,9 @@ namespace DSL
         }
         for (auto const &imap: m_videoCompsIndexed)
         {
-            // propagate the link method and batch size to the Child Bintr
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Bintr
+            imap.second->SetPipelineId(m_pipelineId);
             imap.second->SetLinkMethod(m_linkMethod);
             imap.second->SetBatchSize(m_videoBatchSize);
             

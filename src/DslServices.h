@@ -1144,6 +1144,8 @@ namespace DSL {
     
         DslReturnType SourceNameGet(int uniqueId, const char** name);
 
+        DslReturnType _sourceNameGet(int uniqueId, const char** name);
+
         void _sourceNameSet(const char* name, uint uniqueId);
     
         bool _sourceNameErase(const char* name);
@@ -1466,6 +1468,12 @@ namespace DSL {
         DslReturnType TilerSourceShowAll(const char* name);
 
         DslReturnType TilerSourceShowCycle(const char* name, uint timeout);
+
+        DslReturnType TilerSourceShowListenerAdd(const char* name, 
+            dsl_tiler_source_show_listener_cb listener, void* clientData);
+
+        DslReturnType TilerSourceShowListenerRemove(const char* name, 
+            dsl_tiler_source_show_listener_cb listener);
 
         DslReturnType TilerPphAdd(const char* name, const char* handler, uint pad);
 

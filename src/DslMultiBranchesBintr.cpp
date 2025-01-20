@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -114,7 +114,9 @@ namespace DSL
         // If the Pipeline is currently in a linked state, 
         if (IsLinked())
         {
-            // Propagate the link method and batch size to the Child Component
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Branch
+            pChildComponent->SetPipelineId(m_pipelineId);
             pChildComponent->SetLinkMethod(m_linkMethod);
             pChildComponent->SetBatchSize(m_batchSize);
             
@@ -301,7 +303,9 @@ namespace DSL
 
         for (auto const& imap: m_pChildBranchesIndexed)
         {
-            // Propagate the link method and batch size to the Child Component
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Branch
+            imap.second->SetPipelineId(m_pipelineId);
             imap.second->SetLinkMethod(m_linkMethod);
             imap.second->SetBatchSize(m_batchSize);
             
@@ -460,7 +464,9 @@ namespace DSL
 
         for (auto const& imap: m_pChildBranchesIndexed)
         {
-            // Propagate the link method and batch size to the Child Component
+            // propagate the pipeline-id, link-method, and batch-size to the 
+            // Child Branch
+            imap.second->SetPipelineId(m_pipelineId);
             imap.second->SetLinkMethod(m_linkMethod);
             imap.second->SetBatchSize(m_batchSize);
             

@@ -626,6 +626,10 @@ DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER = \
 DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER = \
     CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 
+#dsl_tiler_source_show_listener_cb
+DSL_TILER_SOURCE_SHOW_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_int, c_void_p)
+
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -5893,7 +5897,6 @@ def dsl_infer_engine_model_update_listener_remove(name, listener):
     result = _dsl.dsl_infer_engine_model_update_listener_remove(name, c_listener)
     return int(result)
 
-
 ##
 ## dsl_tracker_new()
 ##
@@ -6760,6 +6763,34 @@ _dsl.dsl_tiler_source_show_all.restype = c_uint
 def dsl_tiler_source_show_all(name):
     global _dsl
     result = _dsl.dsl_tiler_source_show_all(name)
+    return int(result)
+
+#
+## dsl_tiler_source_show_listener_add()
+##
+_dsl.dsl_tiler_source_show_listener_add.argtypes = [c_wchar_p, 
+    DSL_TILER_SOURCE_SHOW_LISTENER, c_void_p]
+_dsl.dsl_tiler_source_show_listener_add.restype = c_uint
+def dsl_tiler_source_show_listener_add(name, listener, client_data):
+    global _dsl
+    c_listener = DSL_TILER_SOURCE_SHOW_LISTENER(listener)
+    callbacks.append(c_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_tiler_source_show_listener_add(name, 
+        c_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_tiler_source_show_listener_remove()
+##
+_dsl.dsl_tiler_source_show_listener_remove.argtypes = [c_wchar_p, 
+    DSL_TILER_SOURCE_SHOW_LISTENER]
+_dsl.dsl_tiler_source_show_listener_remove.restype = c_uint
+def dsl_tiler_source_show_listener_remove(name, listener):
+    global _dsl
+    c_listener = DSL_TILER_SOURCE_SHOW_LISTENER(listener)
+    result = _dsl.dsl_tiler_source_show_listener_remove(name, c_listener)
     return int(result)
 
 ##

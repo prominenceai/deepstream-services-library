@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,7 @@ namespace DSL
         Bintr(const char* name, bool isPipeline = false)
             : GstNodetr(name)
             , m_isPipeline(isPipeline)
+            , m_pipelineId(0)
             , m_mediaType(DSL_MEDIA_TYPE_VIDEO_ONLY)
             , m_requestPadId(-1)
             , m_linkMethod(DSL_PIPELINE_LINK_METHOD_DEFAULT)
@@ -83,6 +84,7 @@ namespace DSL
         Bintr(const char* name, GstObject* GstObj)
             : GstNodetr(name)
             , m_isPipeline(false)
+            , m_pipelineId(0)
             , m_requestPadId(-1)
             , m_linkMethod(DSL_PIPELINE_LINK_METHOD_DEFAULT)
             , m_isLinked(false)
@@ -215,6 +217,30 @@ namespace DSL
             
             return m_isLinked;
         }
+
+        /**
+         * @brief gets the current pipelineId in use by this Bintr
+         * @return the current pipelineId
+         */
+        virtual uint GetPipelineId()
+        {
+            LOG_FUNC();
+            
+            return m_pipelineId;
+        };
+        
+        /**
+         * @brief sets the batch size for this Bintr
+         * @param[in] pipelineId the new pipelineId to use.
+         */
+        virtual void SetPipelineId(uint pipelineId)
+        {
+            LOG_FUNC();
+            LOG_INFO("Setting pipeline-id'" << pipelineId 
+                << "' for Bintr '" << GetName() << "'");
+            
+            m_pipelineId = pipelineId;
+        };
 
         /**
          * @brief gets the current batchSize in use by this Bintr
@@ -361,6 +387,11 @@ namespace DSL
         bool m_isPipeline;
 
         /**
+         * @brief pipeline Id, valid while the Bintr is linked.  
+         */
+        uint m_pipelineId;
+
+        /**
          * @brief Supported media. One of the DSL_MEDIA_TYPE constant values.
          * Default = DSL_MEDIA_TYPE_VIDEO_ONLY
          */
@@ -384,7 +415,7 @@ namespace DSL
         bool m_isLinked;
         
         /**
-         * @brief Current batch size for this Bintr
+         * @brief Current batch size, valid while the Bintr is linked.
          */
         uint m_batchSize;
 
