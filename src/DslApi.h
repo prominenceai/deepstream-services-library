@@ -2195,7 +2195,7 @@ typedef void (*dsl_infer_engine_model_update_listener_cb)(const wchar_t* name,
  * @param[in] name name of the Tiler calling this function.
  * @param[in] source name of the source currently shown or "" (empty string) for 
  * all sources.
- * @param[in] ustream_id nique source stream-id, or -1 for all streams.
+ * @param[in] stream_id unique source stream-id, or -1 for all streams.
  * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void (*dsl_tiler_source_show_listener_cb)(const wchar_t* name,
@@ -8201,7 +8201,7 @@ DslReturnType dsl_tiler_source_show_listener_add(const wchar_t* name,
 /**
  * @brief Removes a pad-probe-handler to either the Sink or Source pad of the 
  * named Tiler.
- * @param[in] name unique name of the Tiled Dislplay to update.
+ * @param[in] name unique name of the Tiled Display to update.
  * @param[in]  listener client callback function to remove.
  * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
  */

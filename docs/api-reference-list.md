@@ -31,6 +31,7 @@
 * [`dsl_sink_window_button_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_button_event_handler_cb)
 * [`dsl_sink_window_delete_event_handler_cb`](/docs/api-sink.md#dsl_sink_window_delete_event_handler_cb)
 * [`dsl_infer_gie_model_update_listener_cb`](/docs/api-infer.md#dsl_infer_gie_model_update_listener_cb)
+* [`dsl_tiler_source_show_listener_cb`](/docs/api-tiler.md#dsl_tiler_source_show_listener_cb)
 
 ## DSL Services API:
 * [`dsl_main_loop_run`](/docs/overview.md#main-loop-context)
@@ -378,6 +379,8 @@
 * [`dsl_tiler_source_show_select`](/docs/api-tiler.md#dsl_tiler_source_show_select)
 * [`dsl_tiler_source_show_cycle`](/docs/api-tiler.md#dsl_tiler_source_show_cycle)
 * [`dsl_tiler_source_show_all`](/docs/api-tiler.md#dsl_tiler_source_show_all)
+* [`dsl_tiler_source_show_listener_add`](/docs/api-tiler.md#dsl_tiler_source_show_listener_add)
+* [`dsl_tiler_source_show_listener_remove`](/docs/api-tiler.md#dsl_tiler_source_show_listener_remove)
 * [`dsl_tiler_pph_add`](/docs/api-tiler.md#dsl_tiler_pph_add).
 * [`dsl_tiler_pph_remove`](/docs/api-tiler.md#dsl_tiler_pph_remove)
 
