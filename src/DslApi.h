@@ -10542,6 +10542,19 @@ DslReturnType dsl_pipeline_audiomix_mute_enabled_set(const wchar_t* name,
     const wchar_t* source, boolean enabled);
 
 /**
+ * @brief Sets the Audiomixer's mute enabled setting for a null terminated list of
+ * Audio Sources.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] sources null-terminated list of Audio Sources to mute or unmute.
+ * @param[in] enabled set to true to mute the Audiomixer's sink pads connected to
+ * the named Audio Sources, false to unmute.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set_many(const wchar_t* name, 
+    const wchar_t** sources, boolean enabled);
+
+/**
  * @brief Gets the Audiomixer's volume setting for a specific Audio Source.
  * @param[in] name name of the Pipeline to query.
  * @param[in] source name of the Audio Source for the volume setting.
@@ -10564,6 +10577,19 @@ DslReturnType dsl_pipeline_audiomix_volume_get(const wchar_t* name,
  */
 DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name, 
     const wchar_t* source, double volume);
+ 
+/**
+ * @brief Sets the Audiomixer's volume setting for a null-terminated list of
+ * Audio Source.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] sources null terminated list of the Audio Sources to set the 
+ * volume for.
+ * @param[in] volume a value between 0.0 and 10.0. Default = 1.0.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_volume_set_many(const wchar_t* name, 
+    const wchar_t** sources, double volume);
  
 /**
  * @brief Gets the current link method in use by the named Pipeline.

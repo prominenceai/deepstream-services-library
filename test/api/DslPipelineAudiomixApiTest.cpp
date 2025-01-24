@@ -149,6 +149,62 @@ SCENARIO( "The Pipeline's Audiomixer can set and get its mute-enabled settings c
     }
 }
 
+SCENARIO( "The Pipeline's Audiomixer can set many mute-enabled settings correctly", 
+    "[pipeline-audiomix]" )
+{
+    GIVEN( "A new Pipeline with multiple Audio Sources" ) 
+    {
+        std::wstring pipeline_name  = L"test-pipeline";
+        std::wstring alsa_source_name_1  = L"test-source-1";
+        std::wstring alsa_source_name_2  = L"test-source-2";
+        std::wstring device_location(L"default");
+
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_source_alsa_new(alsa_source_name_1.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_source_alsa_new(alsa_source_name_2.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pipeline_audiomix_enabled_set(
+            pipeline_name.c_str(), TRUE) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {
+            alsa_source_name_1.c_str(), alsa_source_name_2.c_str(), NULL};
+
+        REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+            components) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The Pipeline Audiomixer's mute-enabled settings are updated" ) 
+        {
+            REQUIRE( dsl_pipeline_audiomix_mute_enabled_set_many(
+                pipeline_name.c_str(), components, 
+                TRUE) == DSL_RESULT_SUCCESS );
+
+            THEN( "The updated Streammuxer sync-inputs  is returned" )
+            {
+                boolean mute(TRUE);
+
+                REQUIRE( dsl_pipeline_audiomix_mute_enabled_get(
+                    pipeline_name.c_str(), alsa_source_name_1.c_str(), 
+                    &mute) == DSL_RESULT_SUCCESS );
+                REQUIRE( mute == TRUE );
+
+                mute = TRUE;
+                REQUIRE( dsl_pipeline_audiomix_mute_enabled_get(
+                    pipeline_name.c_str(), alsa_source_name_2.c_str(), 
+                    &mute) == DSL_RESULT_SUCCESS );
+                REQUIRE( mute == TRUE );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Pipeline's Audiomixer can set and get its volume settings correctly", 
     "[pipeline-audiomix]" )
 {
@@ -219,6 +275,62 @@ SCENARIO( "The Pipeline's Audiomixer can set and get its volume settings correct
     }
 }
 
+SCENARIO( "The Pipeline's Audiomixer can set many volume settings correctly", 
+    "[pipeline-audiomix]" )
+{
+    GIVEN( "A new Pipeline with multiple Audio Sources" ) 
+    {
+        std::wstring pipeline_name  = L"test-pipeline";
+        std::wstring alsa_source_name_1  = L"test-source-1";
+        std::wstring alsa_source_name_2  = L"test-source-2";
+        std::wstring device_location(L"default");
+
+        REQUIRE( dsl_pipeline_new(pipeline_name.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_source_alsa_new(alsa_source_name_1.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+        
+        REQUIRE( dsl_source_alsa_new(alsa_source_name_2.c_str(), 
+            device_location.c_str()) == DSL_RESULT_SUCCESS );
+
+        REQUIRE( dsl_pipeline_audiomix_enabled_set(
+            pipeline_name.c_str(), TRUE) == DSL_RESULT_SUCCESS );
+        
+        const wchar_t* components[] = {
+            alsa_source_name_1.c_str(), alsa_source_name_2.c_str(), NULL};
+
+        REQUIRE( dsl_pipeline_component_add_many(pipeline_name.c_str(), 
+            components) == DSL_RESULT_SUCCESS );
+        
+        WHEN( "The Pipeline Audiomixer's volume settings are updated" ) 
+        {
+            REQUIRE( dsl_pipeline_audiomix_volume_set_many(
+                pipeline_name.c_str(), components, 
+                5.0) == DSL_RESULT_SUCCESS );
+
+            THEN( "The updated Streammuxer sync-inputs  is returned" )
+            {
+                double volume(0.0);
+
+                REQUIRE( dsl_pipeline_audiomix_volume_get(
+                    pipeline_name.c_str(), alsa_source_name_1.c_str(), 
+                    &volume) == DSL_RESULT_SUCCESS );
+                REQUIRE( volume == 5.0 );
+
+                volume = TRUE;
+                REQUIRE( dsl_pipeline_audiomix_volume_get(
+                    pipeline_name.c_str(), alsa_source_name_2.c_str(), 
+                    &volume) == DSL_RESULT_SUCCESS );
+                REQUIRE( volume == 5.0 );
+                
+                REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
+                REQUIRE( dsl_pipeline_list_size() == 0 );
+            }
+        }
+    }
+}
+
 SCENARIO( "The Pipeline Audiomixer API checks for NULL input parameters", 
     "[pipeline-audiomix]" )
 {
@@ -253,6 +365,10 @@ SCENARIO( "The Pipeline Audiomixer API checks for NULL input parameters",
                     NULL, FALSE) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pipeline_audiomix_mute_enabled_set(pipeline_name.c_str(), 
                     NULL, FALSE) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_audiomix_mute_enabled_set_many(NULL, 
+                    NULL, FALSE) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_audiomix_mute_enabled_set_many(pipeline_name.c_str(), 
+                    NULL, FALSE) == DSL_RESULT_INVALID_INPUT_PARAM );
                     
                 REQUIRE( dsl_pipeline_audiomix_volume_get(NULL, 
                     NULL, NULL) == DSL_RESULT_INVALID_INPUT_PARAM );
@@ -263,6 +379,10 @@ SCENARIO( "The Pipeline Audiomixer API checks for NULL input parameters",
                 REQUIRE( dsl_pipeline_audiomix_volume_set(NULL, 
                     NULL, 0.0) == DSL_RESULT_INVALID_INPUT_PARAM );
                 REQUIRE( dsl_pipeline_audiomix_volume_set(pipeline_name.c_str(), 
+                    NULL, 0.0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_audiomix_volume_set_many(NULL, 
+                    NULL, 0.0) == DSL_RESULT_INVALID_INPUT_PARAM );
+                REQUIRE( dsl_pipeline_audiomix_volume_set_many(pipeline_name.c_str(), 
                     NULL, 0.0) == DSL_RESULT_INVALID_INPUT_PARAM );
             }
         }

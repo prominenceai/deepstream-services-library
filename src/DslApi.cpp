@@ -12221,6 +12221,29 @@ DslReturnType dsl_pipeline_audiomix_mute_enabled_set(const wchar_t* name,
         cstrName.c_str(), cstrSource.c_str(), enabled);
 }
 
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set_many(const wchar_t* name, 
+    const wchar_t** sources, boolean enabled)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(sources);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    for (const wchar_t** source = sources; *source; source++)
+    {
+        std::wstring wstrSource(*source);
+        std::string cstrSource(wstrSource.begin(), wstrSource.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            PipelineAudiomixMuteEnabledSet(cstrName.c_str(), 
+                cstrSource.c_str(), enabled);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
+}
+
 DslReturnType dsl_pipeline_audiomix_volume_get(const wchar_t* name, 
     const wchar_t* source, double* volume)
 {
@@ -12250,6 +12273,29 @@ DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name,
 
     return DSL::Services::GetServices()->PipelineAudiomixVolumeSet(
         cstrName.c_str(), cstrSource.c_str(), volume);
+}
+
+DslReturnType dsl_pipeline_audiomix_volume_set_many(const wchar_t* name, 
+    const wchar_t** sources, double volume)   
+{
+    RETURN_IF_PARAM_IS_NULL(name);
+    RETURN_IF_PARAM_IS_NULL(sources);
+
+    std::wstring wstrName(name);
+    std::string cstrName(wstrName.begin(), wstrName.end());
+    for (const wchar_t** source = sources; *source; source++)
+    {
+        std::wstring wstrSource(*source);
+        std::string cstrSource(wstrSource.begin(), wstrSource.end());
+        DslReturnType retval = DSL::Services::GetServices()->
+            PipelineAudiomixVolumeSet(cstrName.c_str(), 
+                cstrSource.c_str(), volume);
+        if (retval != DSL_RESULT_SUCCESS)
+        {
+            return retval;
+        }
+    }
+    return DSL_RESULT_SUCCESS;
 }
 
 DslReturnType dsl_pipeline_link_method_get(const wchar_t* name, uint* link_method)
