@@ -47,13 +47,7 @@ namespace DSL
         m_pQueue->GetAttribute("min-threshold-bytes", &m_minThresholdBytes);
         m_pQueue->GetAttribute("min-threshold-time", &m_minThresholdTime);
 
-        // Connect the local static overrrun callback so that queue overruns
-        // can be logged as warning messages by default.
-        g_signal_connect(m_pQueue->GetGObject(), "overrun",
-            G_CALLBACK(QueueOverrunCB), this);
-
-        // Underrun signal occur often (queue level = 0), so we don't 
-        // connect the underrun signal until requested by the client. 
+        // overrun and underrun signals are connected on requested by the client. 
 
         // and the Queue element as a child of this QBintr
         AddChild(m_pQueue);
@@ -286,6 +280,12 @@ namespace DSL
             LOG_ERROR("Queue overrun listener is not unique");
             return false;
         }
+        // connect the callback to the overrun signal on first listener. 
+        if (m_queueOverrunListeners.empty())
+        {
+            g_signal_connect(m_pQueue->GetGObject(), "overrun",
+                G_CALLBACK(QueueOverrunCB), this);
+        }
         m_queueOverrunListeners[listener] = clientData;
         
         return true;
@@ -346,7 +346,7 @@ namespace DSL
     {
         LOG_FUNC();
 
-        LOG_WARN("Queue overrun signal received for Component " 
+        LOG_DEBUG("Queue overrun signal received for Component " 
             << GetName() << "'");
 
         // iterate through the map of queue-overrun-listeners calling each
