@@ -9300,6 +9300,20 @@ def dsl_pipeline_audiomix_mute_enabled_set(name, source, enabled):
     return int(result)
 
 ##
+## dsl_pipeline_audiomix_mute_enabled_set_many()
+##
+#_dsl.dsl_pipeline_audiomix_mute_enabled_set_many.argtypes = ??
+_dsl.dsl_pipeline_audiomix_mute_enabled_set_many.restype = c_uint
+def dsl_pipeline_audiomix_mute_enabled_set_many(name, 
+    sources, enabled):
+    global _dsl
+    arr = (c_wchar_p * len(sources))()
+    arr[:] = sources
+    result = _dsl.dsl_pipeline_audiomix_mute_enabled_set_many(name,
+        arr, enabled)
+    return int(result)
+
+##
 ## dsl_pipeline_audiomix_volume_get()
 ##
 _dsl.dsl_pipeline_audiomix_volume_get.argtypes = [c_wchar_p, 
@@ -9322,6 +9336,20 @@ def dsl_pipeline_audiomix_volume_set(name, source, volume):
     global _dsl
     result = _dsl.dsl_pipeline_audiomix_volume_set(name, 
         source, volume)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_volume_set_many()
+##
+#_dsl.dsl_pipeline_audiomix_volume_set_many.argtypes = ??
+_dsl.dsl_pipeline_audiomix_volume_set_many.restype = c_uint
+def dsl_pipeline_audiomix_volume_set_many(name, 
+    sources, volume):
+    global _dsl
+    arr = (c_wchar_p * len(sources))()
+    arr[:] = sources
+    result = _dsl.dsl_pipeline_audiomix_volume_set_many(name,
+        arr, volume)
     return int(result)
 
 ##
