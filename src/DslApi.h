@@ -10507,7 +10507,7 @@ DslReturnType dsl_pipeline_audiomix_enabled_get(const wchar_t* name,
 
 /**
  * @brief Updates the current enabled/disabled setting for the named Pipeline's
- * Audiomix. 
+ * Audiomixer. 
  * @param[in] name name of the Pipeline to update.
  * @param[in] enabled set to true to enable the Audiomixer, false to disable.
  * @return DSL_RESULT_SUCCESS on successful update, one of 
@@ -10580,7 +10580,7 @@ DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name,
  
 /**
  * @brief Sets the Audiomixer's volume setting for a null-terminated list of
- * Audio Source.
+ * Audio Sources.
  * @param[in] name name of the Pipeline to update.
  * @param[in] sources null terminated list of the Audio Sources to set the 
  * volume for.
