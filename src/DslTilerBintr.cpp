@@ -37,6 +37,7 @@ namespace DSL
         , m_rows(0)
         , m_columns(0)
         , m_frameNumberingEnabled(false)
+        , m_notifyClientsTimerId(0)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
         , m_showSourceTimerId(0)
@@ -106,6 +107,12 @@ namespace DSL
         if (m_isLinked)
         {    
             UnlinkAll();
+        }
+        if (m_notifyClientsTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+            
+            g_source_remove(m_notifyClientsTimerId);
         }
         if (m_showSourceTimerId)
         {
@@ -327,6 +334,7 @@ namespace DSL
     
     void TilerBintr::ShowAllSources()
     {
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
         
         if (m_showSourceTimerId)
@@ -344,6 +352,7 @@ namespace DSL
 
     int TilerBintr::HandleShowSourceTimer()
     {
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
         
         // Tiler is no longer linked but the main_loop and timer are still running
@@ -372,12 +381,14 @@ namespace DSL
         return true;
     }
 
+
     bool TilerBintr::SetShowSource(int streamId)
     {
         LOG_FUNC();
         
-        std::wstring wcstrSource;
-        
+        // clear the source name first
+        m_wstrSourceName = L"";
+
         // if showing a specific source, and not all sources.
         if (streamId != -1)
         {
@@ -393,7 +404,7 @@ namespace DSL
             {
                 // convert the source name to wchar to send to the client.
                 std::string cstrSource(cSourceName);
-                wcstrSource.assign(cstrSource.begin(), cstrSource.end());
+                m_wstrSourceName.assign(cstrSource.begin(), cstrSource.end());
             }
             else
             {
@@ -406,20 +417,35 @@ namespace DSL
         m_showStreamId = streamId;
         m_pTiler->SetAttribute("show-source", m_showStreamId);
 
+        if (m_showSourceListeners.size() and !m_notifyClientsTimerId)
+        {
+            m_notifyClientsTimerId = g_timeout_add(1, NotifyClientsTimerHandler, this);
+        }
+
+        return true;
+    }
+
+    int TilerBintr::HandleNotifiyClients()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+
         // iterate through the map of listeners calling each
         for(auto const& imap: m_showSourceListeners)
         {
             try
             {
                 imap.first(GetWStrName().c_str(), 
-                    wcstrSource.c_str(), streamId, imap.second);
+                    m_wstrSourceName.c_str(), m_showStreamId, imap.second);
             }
             catch(...)
             {
                 LOG_ERROR("Exception calling Client Show-Source-Lister");
             }
         }
-        return true;
+        // Clear the timer resource id and return false to destroy the timer.
+        m_notifyClientsTimerId = 0;
+        return false;
     }
 
     bool TilerBintr::AddShowSourceListener(
@@ -495,4 +521,11 @@ namespace DSL
         return static_cast<TilerBintr*>(user_data)->
             HandleShowSourceTimer();
     }
+
+    static int NotifyClientsTimerHandler(void* user_data)
+    {
+        return static_cast<TilerBintr*>(user_data)->
+            HandleNotifiyClients();
+    }
+
 }

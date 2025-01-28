@@ -28,17 +28,26 @@ THE SOFTWARE.
 
 #define TIME_TO_SLEEP_FOR std::chrono::milliseconds(1000)
 
+static GThread* main_loop_thread_1(NULL);
+
+static void* main_loop_thread_func_1(void *data)
+{
+    dsl_main_loop_run();
+    
+    return NULL;
+}
+
 static void show_source_listener(const wchar_t* tiler, 
     const wchar_t* source, int stream_id, void* client_data)
 {
     if (stream_id == -1)
     {
-        std::wcout << "Tiler '" << tiler << "' is showing all sources" 
+        std::wcout << L"Tiler '" << tiler << L"' is showing all sources" 
             << std::endl;
     }
     else
     {
-        std::wcout << "Tiler '" << tiler << "' is showing source '" 
+        std::wcout << L"Tiler '" << tiler << L"' is showing source '" 
             << source << "'" << std::endl;; 
     }
 }
@@ -143,7 +152,9 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[error]" )
             REQUIRE( dsl_pipeline_component_add_many(pipelineName.c_str(), components) == DSL_RESULT_SUCCESS );
 
             REQUIRE( dsl_pipeline_play(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
-
+            main_loop_thread_1 = g_thread_new("main-loop-1", 
+                main_loop_thread_func_1, NULL);
+            
             THEN( "a Tilers Show Source Settings can be updated" )
             {
 
@@ -176,6 +187,7 @@ SCENARIO( "A new Pipeline with a Tiled Display can be updated", "[error]" )
                 std::this_thread::sleep_for(TIME_TO_SLEEP_FOR);
 
                 REQUIRE( dsl_pipeline_stop(pipelineName.c_str()) == DSL_RESULT_SUCCESS );
+                dsl_main_loop_quit();
 
                 REQUIRE( dsl_pipeline_delete_all() == DSL_RESULT_SUCCESS );
                 REQUIRE( dsl_pipeline_list_size() == 0 );

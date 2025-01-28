@@ -145,6 +145,8 @@ namespace DSL
          * @param[in] timeout the time in seconds to show the current source
          */
         bool CycleAllSources(uint timeout);
+
+        int HandleNotifiyClients();
         
         /**
          * @brief Adds a Show Source Listener to this TilerBintr
@@ -239,10 +241,21 @@ namespace DSL
         DslMutex m_showSourceMutex;
         
         /**
-         * @brief current show-source id, -1 == show-a;-sources
+         * @brief current show-source id, -1 == showing all sources
          */
         int m_showStreamId;
-        
+
+        /**
+         * @brief current show-source name, "" == showing all sources
+         */
+        std::wstring m_wstrSourceName;
+
+        /**
+         * @brief Timer resource id to notifiy clients of changes in the 
+         * source shown in an async timer callback thread.
+         */
+        int m_notifyClientsTimerId;
+
         /**
          * @brief client provided timeout in seconds
          */
@@ -272,7 +285,20 @@ namespace DSL
 
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * @brief Show-Source Timer callback function.
+     * @param[in] user_data shared pointer to Tiler component.
+     * @return true to reset timer, false to destroy.
+     */
     static int ShowSourceTimerHandler(void* user_data);
+
+    /**
+     * @brief Timer callback function to notify clients of changes in source shown.
+     * @param[in] user_data shared pointer to Tiler component.
+     * @return false to destroy always.
+     */
+    static int NotifyClientsTimerHandler(void* user_data);
+
 }
 
 #endif // _DSL_TILER_BINTR_H
