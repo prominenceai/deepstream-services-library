@@ -570,6 +570,52 @@ SCENARIO( "An Audio Streammixer can be enabled and disable successfully",
     }
 }
 
+SCENARIO( "Adding Sources to a Pipeline with miss-matching media-types is handled correctly",
+    "[PipelineSourcesBintr]" )
+{
+    GIVEN( "A Pipeline Sources Bintr with Audiomixer and Audiomuxer disabled by default" ) 
+
+    {
+        DSL_PIPELINE_SOURCES_PTR pPipelineSourcesBintr = 
+            DSL_PIPELINE_SOURCES_NEW(pipelineSourcesName.c_str(), pipelineId);
+
+        DSL_URI_SOURCE_PTR pSourceBintr0 = DSL_URI_SOURCE_NEW(
+            sourceName0.c_str(), filePath.c_str(), false, false, 0);
+
+        DSL_ALSA_SOURCE_PTR pSourceBintr1 = DSL_ALSA_SOURCE_NEW(
+            sourceName1.c_str(), "default");
+                    
+        WHEN( "The video Source is added when the Videomux is disabled" )
+        {
+            REQUIRE( pPipelineSourcesBintr->SetStreammuxEnabled(DSL::DSL_VIDEOMUX, 
+                false) == true );
+
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr0)) == false );
+                       
+            THEN( "The Pipeline Sources Bintr and Source are not updated" )
+            {
+                REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
+                REQUIRE( pSourceBintr0->IsInUse() == false );
+                REQUIRE( pSourceBintr0->GetRequestPadId() == -1 );
+            }
+        }
+        WHEN( "The Source is Added " )
+        {
+            REQUIRE( pPipelineSourcesBintr->AddChild(
+                std::dynamic_pointer_cast<SourceBintr>(pSourceBintr1)) == false );
+                       
+            THEN( "The Pipeline Sources Bintr and Source are not updated" )
+            {
+                REQUIRE( pPipelineSourcesBintr->GetNumChildren() == 0 );
+                REQUIRE( pSourceBintr1->IsInUse() == false );
+                REQUIRE( pSourceBintr1->GetRequestPadId() == -1 );
+            }
+        }
+    }
+}
+
+
 SCENARIO( "Linking multiple Sources to an Audio Streammixer is managed correctly",
     "[PipelineSourcesBintr]" )
 {
