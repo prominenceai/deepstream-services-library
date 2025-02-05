@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -383,7 +383,7 @@ namespace DSL
     }
 
     bool InferBintr::AddModelUpdateListener(
-            dsl_infer_engine_model_update_listener_cb listener, void* clientData)
+        dsl_infer_engine_model_update_listener_cb listener, void* clientData)
     {
         LOG_FUNC();
 
@@ -398,13 +398,13 @@ namespace DSL
     }
 
     bool InferBintr::RemoveModelUpdateListener(
-            dsl_infer_engine_model_update_listener_cb listener)
+        dsl_infer_engine_model_update_listener_cb listener)
     {
         LOG_FUNC();
         
         if (m_modelUpdateListeners.find(listener) == m_modelUpdateListeners.end())
         {   
-            LOG_ERROR("Pipeline listener was not found");
+            LOG_ERROR("Model Update listener was not found");
             return false;
         }
         m_modelUpdateListeners.erase(listener);

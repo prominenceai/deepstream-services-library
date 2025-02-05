@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021, Prominence AI, Inc.
+Copyright (c)   2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -430,7 +430,7 @@ namespace DSL
                 LOG_INFO("xPos = " << xPos << " yPos = " << yPos 
                     << " window width = " << windowWidth 
                     << " window hidth = " << windowHeight
-                    << " timeout = " << timeout << "selected successfully for Tiler '" 
+                    << " timeout = " << timeout << " selected successfully for Tiler '" 
                     << name << "'");
             }
             // else, showing a single source so return to all sources. 
@@ -502,6 +502,74 @@ namespace DSL
         {
             LOG_ERROR("Tiler '" << name << "' threw an exception showing all sources");
             return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+    
+    DslReturnType Services::TilerSourceShowListenerAdd(const char* name, 
+        dsl_tiler_source_show_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_servicesMutex);
+
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+            if (!pTilerBintr->AddShowSourceListener(listener, clientData))
+            {
+                LOG_ERROR("Tiler '" << name 
+                    << "' failed to add a Show Source Listener");
+                return DSL_RESULT_TILER_CALLBACK_ADD_FAILED;
+            }
+            LOG_INFO("Tiler '" << name 
+                << "' added a Show Source Listener successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name 
+                << "' threw an exception adding a Show Source Listener");
+            return DSL_RESULT_TILER_THREW_EXCEPTION;
+        }
+    }
+        
+    DslReturnType Services::TilerSourceShowListenerRemove(const char* name, 
+        dsl_tiler_source_show_listener_cb listener)
+    {
+        LOG_FUNC();
+    
+        try
+        {
+            DSL_RETURN_IF_COMPONENT_NAME_NOT_FOUND(m_components, name);
+            DSL_RETURN_IF_COMPONENT_IS_NOT_CORRECT_TYPE(m_components, name, 
+                TilerBintr);
+
+            DSL_TILER_PTR pTilerBintr = 
+                std::dynamic_pointer_cast<TilerBintr>(m_components[name]);
+
+
+            if (!pTilerBintr->RemoveShowSourceListener(listener))
+            {
+                LOG_ERROR("Tiler '" << name 
+                    << "' failed to remove a Show Source Listener");
+                return DSL_RESULT_TILER_CALLBACK_REMOVE_FAILED;
+            }
+            LOG_INFO("Tiler '" << name 
+                << "' removed Show Source Listener successfully");
+
+            return DSL_RESULT_SUCCESS;
+        }
+        catch(...)
+        {
+            LOG_ERROR("Tiler '" << name 
+                << "' threw an exception removeing a Show Source Listener");
+            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
         }
     }
     

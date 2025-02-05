@@ -121,6 +121,16 @@ Clients can be notified of Pipeline events by registering/deregistering one or m
 * [`dsl_pipeline_delete_many`](#dsl_pipeline_delete_many)
 * [`dsl_pipeline_delete_all`](#dsl_pipeline_delete_all)
 
+**Audio Mixer Methods**
+* [`dsl_pipeline_audiomix_enabled_get`](#dsl_pipeline_audiomix_enabled_get)
+* [`dsl_pipeline_audiomix_enabled_set`](#dsl_pipeline_audiomix_enabled_set)
+* [`dsl_pipeline_audiomix_mute_enabled_get`](#dsl_pipeline_audiomix_mute_enabled_get)
+* [`dsl_pipeline_audiomix_mute_enabled_set`](#dsl_pipeline_audiomix_mute_enabled_set)
+* [`dsl_pipeline_audiomix_mute_enabled_set_many`](#dsl_pipeline_audiomix_mute_enabled_set_many)
+* [`dsl_pipeline_audiomix_volume_get`](#dsl_pipeline_audiomix_volume_get)
+* [`dsl_pipeline_audiomix_volume_set`](#dsl_pipeline_audiomix_volume_set)
+* [`dsl_pipeline_audiomix_volume_set_many`](#dsl_pipeline_audiomix_volume_set_many)
+
 **New Streammuxer Methods**
 * [`dsl_pipeline_streammux_config_file_get`](#dsl_pipeline_streammux_config_file_get)
 * [`dsl_pipeline_streammux_config_file_set`](#dsl_pipeline_streammux_config_file_set)
@@ -413,6 +423,203 @@ This destructor deletes all Pipelines currently in memory. All components owned 
 **Python Example**
 ```Python
 retval = dsl_pipeline_delete_all()
+```
+
+<br>
+
+---
+
+## Audio Mixer Methods
+### *dsl_pipeline_audiomix_enabled_get*
+```C++
+DslReturnType dsl_pipeline_audiomix_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+```
+This service returns the current enabled/disabled setting for the named Pipeline's Audiomixer.
+
+**IMPORTANT!** The Pipeline Audio Mixer is mutully exclusive with the Audio Streammuxer. Only one can be enabled. 
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to query.
+* `enabled` - [out] true if the Audiomixer is enabled, false if not. 
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_pipeline_audiomix_enabled_get('my-pipeline')
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_enabled_set*
+```C++
+DslReturnType dsl_pipeline_audiomix_enabled_set(const wchar_t* name, 
+    boolean enabled);
+```
+This service sets the current enabled/disabled setting for the named Pipeline's Audiomixer. 
+
+**IMPORTANT!** The Pipeline Audio Mixer is mutully exclusive with the Audio Streammuxer. Only one can be enabled. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `enabled` - [in] set to true to enable the Audiomixer, false to disable.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_audiomix_enabled_set('my-pipeline', True)
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_mute_enabled_get*
+```C++
+DslReturnType dsl_pipeline_audiomix_mute_enabled_get(const wchar_t* name, 
+    const wchar_t* source, boolean* enabled);
+```
+This service returns the Audiomixer's mute enabled setting for a specific Audio Source.
+
+**IMPORTANT!** The Source must be a child of the named Pipeline or the service will fail. 
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to query.
+* `source` - [in] name of the Audio Source for the mute enabled setting.
+* `enabled` - [out] if true, then the Audiomixer's sink pad connected to the named Audio Source is currently muted.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, enabled = dsl_pipeline_audiomix_mute_enabled_get('my-pipeline', 'my-source-1')
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_mute_enabled_set*
+```C++
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set(const wchar_t* name, 
+    const wchar_t* source, boolean enabled);
+```
+This service sets the Audiomixer's mute enabled setting for a specific Audio Source.
+
+**IMPORTANT!** The Source must be a child of the named Pipeline or the service will fail. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `source` - [in] name of the Audio Source for the mute enabled setting.
+* `enabled` - [in] set to true to mute the Audiomixer's sink pad connected to the named Audio Source, false to unmute.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_audiomix_mute_enabled_set('my-pipeline', 
+    'my-source-1', True)
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_mute_enabled_set_many*
+```C++
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set_many(const wchar_t* name, 
+    const wchar_t** sources, boolean enabled);
+```
+This service sets he Audiomixer's mute enabled setting for a null terminated list of Audio Sources.
+
+**IMPORTANT!** All Sources must be a child of the named Pipeline or the service will fail. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `sources` - [in] null-terminated list of Audio Sources to mute or unmute.
+* `enabled` - [in] set to true to mute the Audiomixer's sink pads connected to the named Audio Sources, false to unmute.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_audiomix_mute_enabled_set_many('my-pipeline', 
+    ['my-source-1', 'my-source-2', 'my-source-3', None], True)
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_volume_get*
+```C++
+DslReturnType dsl_pipeline_audiomix_volume_get(const wchar_t* name, 
+    const wchar_t* source, double* volume);
+```
+This service returns the Audiomixer's volume setting for a specific Audio Source.
+
+**IMPORTANT!** The Source must be a child of the named Pipeline or the service will fail. 
+
+**Parameters**
+* `pipeline` - [in] unique name of the Pipeline to query.
+* `source` - [in] name of the Audio Source for the volume setting.
+* `volume` - [out] the volume that is assigned to the Audiomixer's sink pad connected to the named Audio Source, between 0.0 and 10.0. Default = 1.0
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful query. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval, volume = dsl_pipeline_audiomix_volume_get('my-pipeline', 'my-source-1')
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_volume_set*
+```C++
+DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name, 
+    const wchar_t* source, double volume);
+```
+This service sets the Audiomixer's volume setting for a specific Audio Source.
+
+**IMPORTANT!** The Source must be a child of the named Pipeline or the service will fail. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `source` - [in] name of the Audio Source for the volume setting.
+* `volume` - [in] a value between 0.0 and 10.0 for the sink pad connected to the named Audio Source. Default = 1.0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_audiomix_volume_set('my-pipeline', 
+    'my-source-1', 2.5)
+```
+
+<br>
+
+### *dsl_pipeline_audiomix_volume_set_many*
+```C++
+DslReturnType dsl_pipeline_audiomix_volume_set_many(const wchar_t* name, 
+    const wchar_t** sources, double volume);
+```
+This service sets the Audiomixer's volume setting for a null-terminated list of Audio Sources.
+
+**IMPORTANT!** All Sources must be a child of the named Pipeline or the service will fail. 
+
+**Parameters**
+* `pipeline` - [in] unique name for the Pipeline to update.
+* `sources` - [in] null terminated list of Audio Source to set the volume setting.
+* `volume` - [in] a value between 0.0 and 10.0 for the sink pad connected to the named Audio Source. Default = 1.0.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful update. One of the [Return Values](#return-values) defined above on failure
+
+**Python Example**
+```Python
+retval = dsl_pipeline_audiomix_volume_set_many('my-pipeline', 
+    ['my-source-1', 'my-source-2', 'my-source-3', None], 2.5)
 ```
 
 <br>

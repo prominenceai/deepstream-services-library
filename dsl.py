@@ -626,6 +626,10 @@ DSL_COMPONENT_QUEUE_UNDERRUN_LISTENER = \
 DSL_INFER_ENGINE_MODEL_UPDATE_LISTENER = \
     CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_void_p)
 
+#dsl_tiler_source_show_listener_cb
+DSL_TILER_SOURCE_SHOW_LISTENER = \
+    CFUNCTYPE(None, c_wchar_p, c_wchar_p, c_int, c_void_p)
+
 ##
 ## TODO: CTYPES callback management needs to be completed before any of
 ## the callback remove wrapper functions will work correctly.
@@ -5893,7 +5897,6 @@ def dsl_infer_engine_model_update_listener_remove(name, listener):
     result = _dsl.dsl_infer_engine_model_update_listener_remove(name, c_listener)
     return int(result)
 
-
 ##
 ## dsl_tracker_new()
 ##
@@ -6760,6 +6763,34 @@ _dsl.dsl_tiler_source_show_all.restype = c_uint
 def dsl_tiler_source_show_all(name):
     global _dsl
     result = _dsl.dsl_tiler_source_show_all(name)
+    return int(result)
+
+#
+## dsl_tiler_source_show_listener_add()
+##
+_dsl.dsl_tiler_source_show_listener_add.argtypes = [c_wchar_p, 
+    DSL_TILER_SOURCE_SHOW_LISTENER, c_void_p]
+_dsl.dsl_tiler_source_show_listener_add.restype = c_uint
+def dsl_tiler_source_show_listener_add(name, listener, client_data):
+    global _dsl
+    c_listener = DSL_TILER_SOURCE_SHOW_LISTENER(listener)
+    callbacks.append(c_listener)
+    c_client_data=cast(pointer(py_object(client_data)), c_void_p)
+    clientdata.append(c_client_data)
+    result = _dsl.dsl_tiler_source_show_listener_add(name, 
+        c_listener, c_client_data)
+    return int(result)
+    
+##
+## dsl_tiler_source_show_listener_remove()
+##
+_dsl.dsl_tiler_source_show_listener_remove.argtypes = [c_wchar_p, 
+    DSL_TILER_SOURCE_SHOW_LISTENER]
+_dsl.dsl_tiler_source_show_listener_remove.restype = c_uint
+def dsl_tiler_source_show_listener_remove(name, listener):
+    global _dsl
+    c_listener = DSL_TILER_SOURCE_SHOW_LISTENER(listener)
+    result = _dsl.dsl_tiler_source_show_listener_remove(name, c_listener)
     return int(result)
 
 ##
@@ -8397,7 +8428,7 @@ def dsl_component_queue_leaky_set(name, leaky):
     return int(result)
 
 ##
-## dsl_component_queue_leaky_set_many()
+### dsl_component_queue_leaky_set_many()
 ##
 #_dsl.dsl_component_queue_leaky_set_many.argtypes = []?
 _dsl.dsl_component_queue_leaky_set_many.restype = c_uint
@@ -8873,18 +8904,6 @@ def dsl_pipeline_component_remove_many(pipeline, components):
 ## AUDIO STREAMMUX SERVICES - Start
 
 ##
-## dsl_pipeline_audiomux_enabled_set()
-##
-_dsl.dsl_pipeline_audiomux_enabled_set.argtypes = [c_wchar_p, 
-    c_bool]
-_dsl.dsl_pipeline_audiomux_enabled_set.restype = c_uint
-def dsl_pipeline_audiomux_enabled_set(name, enabled):
-    global _dsl
-    result = _dsl.dsl_pipeline_audiomux_enabled_set(name, 
-        enabled)
-    return int(result)
-
-##
 ## dsl_pipeline_audiomux_enabled_get()
 ##
 _dsl.dsl_pipeline_audiomux_enabled_get.argtypes = [c_wchar_p, 
@@ -8896,6 +8915,18 @@ def dsl_pipeline_audiomux_enabled_get(name):
     result = _dsl.dsl_pipeline_audiomux_enabled_get(name, 
         DSL_BOOL_P(enabled))
     return int(result), enabled.value
+
+##
+## dsl_pipeline_audiomux_enabled_set()
+##
+_dsl.dsl_pipeline_audiomux_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_audiomux_enabled_set.restype = c_uint
+def dsl_pipeline_audiomux_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomux_enabled_set(name, 
+        enabled)
+    return int(result)
 
 ## -----------------------------------------------------------------------------------
 ## COMMON VIDEO STREAMMUX SERVICES - Start
@@ -9232,6 +9263,112 @@ _dsl.dsl_pipeline_streammux_pph_remove.restype = c_uint
 def dsl_pipeline_streammux_pph_remove(name, handler):
     global _dsl
     result = _dsl.dsl_pipeline_streammux_pph_remove(name, handler)
+    return int(result)
+
+## -----------------------------------------------------------------------------------
+## AUDIO MIXER SERVICES - Start
+
+##
+## dsl_pipeline_audiomix_enabled_get()
+##
+_dsl.dsl_pipeline_audiomix_enabled_get.argtypes = [c_wchar_p, 
+    POINTER(c_bool)]
+_dsl.dsl_pipeline_audiomix_enabled_get.restype = c_uint
+def dsl_pipeline_audiomix_enabled_get(name):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_audiomix_enabled_get(name, 
+        DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_audiomix_enabled_set()
+##
+_dsl.dsl_pipeline_audiomix_enabled_set.argtypes = [c_wchar_p, 
+    c_bool]
+_dsl.dsl_pipeline_audiomix_enabled_set.restype = c_uint
+def dsl_pipeline_audiomix_enabled_set(name, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomix_enabled_set(name, 
+        enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_mute_enabled_get()
+##
+_dsl.dsl_pipeline_audiomix_mute_enabled_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_bool)]
+_dsl.dsl_pipeline_audiomix_mute_enabled_get.restype = c_uint
+def dsl_pipeline_audiomix_mute_enabled_get(name, source):
+    global _dsl
+    enabled = c_bool(0)
+    result = _dsl.dsl_pipeline_audiomix_mute_enabled_get(name, 
+        source, DSL_BOOL_P(enabled))
+    return int(result), enabled.value
+
+##
+## dsl_pipeline_audiomix_mute_enabled_set()
+##
+_dsl.dsl_pipeline_audiomix_mute_enabled_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_bool]
+_dsl.dsl_pipeline_audiomix_mute_enabled_set.restype = c_uint
+def dsl_pipeline_audiomix_mute_enabled_set(name, source, enabled):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomix_mute_enabled_set(name, 
+        source, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_mute_enabled_set_many()
+##
+#_dsl.dsl_pipeline_audiomix_mute_enabled_set_many.argtypes = ??
+_dsl.dsl_pipeline_audiomix_mute_enabled_set_many.restype = c_uint
+def dsl_pipeline_audiomix_mute_enabled_set_many(name, 
+    sources, enabled):
+    global _dsl
+    arr = (c_wchar_p * len(sources))()
+    arr[:] = sources
+    result = _dsl.dsl_pipeline_audiomix_mute_enabled_set_many(name,
+        arr, enabled)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_volume_get()
+##
+_dsl.dsl_pipeline_audiomix_volume_get.argtypes = [c_wchar_p, 
+    c_wchar_p, POINTER(c_double)]
+_dsl.dsl_pipeline_audiomix_volume_get.restype = c_uint
+def dsl_pipeline_audiomix_volume_get(name, source):
+    global _dsl
+    volume = c_double(0)
+    result = _dsl.dsl_pipeline_audiomix_volume_get(name, 
+        source, DSL_DOUBLE_P(volume))
+    return int(result), volume.value
+
+##
+## dsl_pipeline_audiomix_volume_set()
+##
+_dsl.dsl_pipeline_audiomix_volume_set.argtypes = [c_wchar_p, 
+    c_wchar_p, c_double]
+_dsl.dsl_pipeline_audiomix_volume_set.restype = c_uint
+def dsl_pipeline_audiomix_volume_set(name, source, volume):
+    global _dsl
+    result = _dsl.dsl_pipeline_audiomix_volume_set(name, 
+        source, volume)
+    return int(result)
+
+##
+## dsl_pipeline_audiomix_volume_set_many()
+##
+#_dsl.dsl_pipeline_audiomix_volume_set_many.argtypes = ??
+_dsl.dsl_pipeline_audiomix_volume_set_many.restype = c_uint
+def dsl_pipeline_audiomix_volume_set_many(name, 
+    sources, volume):
+    global _dsl
+    arr = (c_wchar_p * len(sources))()
+    arr[:] = sources
+    result = _dsl.dsl_pipeline_audiomix_volume_set_many(name,
+        arr, volume)
     return int(result)
 
 ##

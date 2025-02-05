@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 20113-2024, Prominence AI, Inc.
+Copyright (c) 20113-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -247,6 +247,8 @@ THE SOFTWARE.
 #define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
 #define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
 #define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
+#define DSL_RESULT_TILER_CALLBACK_ADD_FAILED                        0x0007000B
+#define DSL_RESULT_TILER_CALLBACK_REMOVE_FAILED                     0x0007000C
 
 /**
  * Pipeline API Return Values
@@ -273,6 +275,8 @@ THE SOFTWARE.
 #define DSL_RESULT_PIPELINE_GET_FAILED                              0x00080013
 #define DSL_RESULT_PIPELINE_SET_FAILED                              0x00080014
 #define DSL_RESULT_PIPELINE_MAIN_LOOP_REQUEST_FAILED                0x00080015
+#define DSL_RESULT_PIPELINE_AUDIOMIX_GET_FAILED                     0x00080016
+#define DSL_RESULT_PIPELINE_AUDIOMIX_SET_FAILED                     0x00080017
 
 #define DSL_RESULT_BRANCH_RESULT                                    0x000B0000
 #define DSL_RESULT_BRANCH_NAME_NOT_UNIQUE                           0x000B0001
@@ -2179,12 +2183,23 @@ typedef void (*dsl_component_queue_underrun_listener_cb)(const wchar_t* name,
 /**
  * @brief Callback typedef for an Inference Engine Component (PAIE, PGIE, SGIE) to 
  * notify clients when a model engine has been successfully updated.
- * @param name name of the PAIE, PGIE, or SGIE calling this function.
- * @param model_engine_file path to the new model engine file in use.
+ * @param[in] name name of the PAIE, PGIE, or SGIE calling this function.
+ * @param[in] model_engine_file path to the new model engine file in use.
  * @param[in] client_data opaque pointer to client's user data.
  */
 typedef void (*dsl_infer_engine_model_update_listener_cb)(const wchar_t* name,
     const wchar_t* model_engine_file, void* client_data);
+
+/**
+ * @brief Callback typedef for a client to listen for Tiler show-source updates.
+ * @param[in] name name of the Tiler calling this function.
+ * @param[in] source name of the source currently shown or "" (empty string) for 
+ * all sources.
+ * @param[in] stream_id unique source stream-id, or -1 for all streams.
+ * @param[in] client_data opaque pointer to client's user data.
+ */
+typedef void (*dsl_tiler_source_show_listener_cb)(const wchar_t* name,
+    const wchar_t* source, int stream_id, void* client_data);
 
 // -----------------------------------------------------------------------------------
 // Start of DSL Services 
@@ -8171,6 +8186,29 @@ DslReturnType dsl_tiler_source_show_all(const wchar_t* name);
 DslReturnType dsl_tiler_source_show_cycle(const wchar_t* name, uint timeout);
 
 /**
+ * @brief Adds a listener callback to the named Tiler to be called on
+ * every change of source shown. 
+ * @param[in] name unique name of the Tiled Display to update.
+ * @param[in] listener client callback function to be called with each change 
+ * of source shown. 
+ * @param[in] client_data opaque pointer to client data returned
+ * on callback to the client handler function. 
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
+ */
+DslReturnType dsl_tiler_source_show_listener_add(const wchar_t* name, 
+    dsl_tiler_source_show_listener_cb listener, void* client_data);
+
+/**
+ * @brief Removes a pad-probe-handler to either the Sink or Source pad of the 
+ * named Tiler.
+ * @param[in] name unique name of the Tiled Display to update.
+ * @param[in]  listener client callback function to remove.
+ * @return DSL_RESULT_SUCCESS on success, DSL_RESULT_TILER_RESULT otherwise
+ */
+DslReturnType dsl_tiler_source_show_listener_remove(const wchar_t* name, 
+    dsl_tiler_source_show_listener_cb listener);
+
+/**
  * @brief Adds a pad-probe-handler to either the Sink or Source pad of the named Tiler
  * A Tiled Display can have multiple Sink and Source pad probe handlers
  * @param[in] name unique name of the Tiled Display to update
@@ -10455,6 +10493,104 @@ DslReturnType dsl_pipeline_streammux_pph_remove(const wchar_t* name,
 //------------------------------------------------------------------------------------
 // COMMON NVSTREAMMUX SERVICES - End
 //------------------------------------------------------------------------------------
+
+/**
+ * @brief Returns the current enabled/disabled setting for the named Pipeline's
+ * Audiomixer.
+ * @param[in] name name of the Pipeline to query.
+ * @param[out] enabled true if the Audiomixer is enabled, false if not.
+ * @return DSL_RESULT_SUCCESS on successful query, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_enabled_get(const wchar_t* name, 
+    boolean* enabled);
+
+/**
+ * @brief Updates the current enabled/disabled setting for the named Pipeline's
+ * Audiomixer. 
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] enabled set to true to enable the Audiomixer, false to disable.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_enabled_set(const wchar_t* name, 
+    boolean enabled);
+
+/**
+ * @brief Gets the Audiomixer's mute enabled setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to query.
+ * @param[in] source name of the Audio Source for the mute enabled setting.
+ * @param[out] enabled if true, then the Audiomixer's sink pad connected to
+ * the named Audio Source is currently muted - or will be muted when the pipeline 
+ * is played.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_mute_enabled_get(const wchar_t* name, 
+    const wchar_t* source, boolean* enabled);
+
+/**
+ * @brief Sets the Audiomixer's mute enabled setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] source name of the Audio Source to mute or unmute.
+ * @param[in] enabled set to true to mute the Audiomixer's sink pad connected to
+ * the named Audio Source, false to unmute.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set(const wchar_t* name, 
+    const wchar_t* source, boolean enabled);
+
+/**
+ * @brief Sets the Audiomixer's mute enabled setting for a null terminated list of
+ * Audio Sources.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] sources null-terminated list of Audio Sources to mute or unmute.
+ * @param[in] enabled set to true to mute the Audiomixer's sink pads connected to
+ * the named Audio Sources, false to unmute.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_mute_enabled_set_many(const wchar_t* name, 
+    const wchar_t** sources, boolean enabled);
+
+/**
+ * @brief Gets the Audiomixer's volume setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to query.
+ * @param[in] source name of the Audio Source for the volume setting.
+ * @param[out] volume the volume that is assigned to the Audiomixer's 
+ * sink pad connected to the named Audio Source, between 0.0 and 10.0.
+ * Default = 1.0
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_volume_get(const wchar_t* name, 
+    const wchar_t* source, double* volume);
+
+/**
+ * @brief Sets the Audiomixer's volume setting for a specific Audio Source.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] source name of the Audio Source to set the volume for.
+ * @param[in] volume a value between 0.0 and 10.0. Default = 1.0.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_volume_set(const wchar_t* name, 
+    const wchar_t* source, double volume);
+ 
+/**
+ * @brief Sets the Audiomixer's volume setting for a null-terminated list of
+ * Audio Sources.
+ * @param[in] name name of the Pipeline to update.
+ * @param[in] sources null terminated list of the Audio Sources to set the 
+ * volume for.
+ * @param[in] volume a value between 0.0 and 10.0. Default = 1.0.
+ * @return DSL_RESULT_SUCCESS on successful update, one of 
+ * DSL_RESULT_PIPELINE_RESULT on failure. 
+ */
+DslReturnType dsl_pipeline_audiomix_volume_set_many(const wchar_t* name, 
+    const wchar_t** sources, double volume);
+ 
 /**
  * @brief Gets the current link method in use by the named Pipeline.
  * @param[in] name unique name of the Pipeline to query.

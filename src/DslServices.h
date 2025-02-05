@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1144,6 +1144,8 @@ namespace DSL {
     
         DslReturnType SourceNameGet(int uniqueId, const char** name);
 
+        DslReturnType _sourceNameGet(int uniqueId, const char** name);
+
         void _sourceNameSet(const char* name, uint uniqueId);
     
         bool _sourceNameErase(const char* name);
@@ -1466,6 +1468,12 @@ namespace DSL {
         DslReturnType TilerSourceShowAll(const char* name);
 
         DslReturnType TilerSourceShowCycle(const char* name, uint timeout);
+
+        DslReturnType TilerSourceShowListenerAdd(const char* name, 
+            dsl_tiler_source_show_listener_cb listener, void* clientData);
+
+        DslReturnType TilerSourceShowListenerRemove(const char* name, 
+            dsl_tiler_source_show_listener_cb listener);
 
         DslReturnType TilerPphAdd(const char* name, const char* handler, uint pad);
 
@@ -2045,6 +2053,24 @@ namespace DSL {
         DslReturnType PipelineStreammuxPphRemove(const char* name, 
             streammux_type streammux, const char* handler);
         
+        DslReturnType PipelineAudiomixEnabledGet(const char* name, 
+            boolean* enabled);
+
+        DslReturnType PipelineAudiomixEnabledSet(const char* name, 
+            boolean enabled);
+
+        DslReturnType PipelineAudiomixMuteEnabledGet(const char* name, 
+            const char* source, boolean* enabled);
+
+        DslReturnType PipelineAudiomixMuteEnabledSet(const char* name, 
+            const char* source, boolean enabled);
+
+        DslReturnType PipelineAudiomixVolumeGet(const char* name, 
+            const char* source, double* volume);
+
+        DslReturnType PipelineAudiomixVolumeSet(const char* name, 
+            const char* source, double volume);
+
         DslReturnType PipelineLinkMethodGet(const char* name, uint* linkMethod);
         
         DslReturnType PipelineLinkMethodSet(const char* name, uint linkMethod);

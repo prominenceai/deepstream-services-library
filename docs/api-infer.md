@@ -118,7 +118,7 @@ The following return codes are used by the Inference API
 typedef void (*dsl_infer_engine_model_update_listener_cb)(const wchar_t* name,
    const wchar_t* model_engine_file, void* client_data);
 ```
-Callback typedef for a client model-update listener. Functions of this type are added to a Primary or Secondary Inference Engine by calling [dsl_infer_engine_model_update_listener_add](#dsl_infer_engine_model_update_listener_add). Once added, the function will be called each time a new model-engine has been successfully loaded while the Pipeline is in a state of playing.
+Callback typedef for a client model-update listener. Functions of this type are added to a Primary or Secondary Inference Engine by calling [`dsl_infer_engine_model_update_listener_add`](#dsl_infer_engine_model_update_listener_add). Once added, the function will be called each time a new model-engine has been successfully loaded while the Pipeline is in a state of playing.
 
 **Parameters**
 * `name` - [in] name of the Primary or Secondary Inference Component that loaded the model-engine.

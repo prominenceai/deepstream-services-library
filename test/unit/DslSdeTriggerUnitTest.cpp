@@ -304,7 +304,7 @@ SCENARIO( "An SdeOccurrenceTrigger handles a timed reset on event limit correctl
     }
 }
 
-SCENARIO( "An SdeOccurrenceTrigger handles a timed reset on frame limit correctly", "[error]" )
+SCENARIO( "An SdeOccurrenceTrigger handles a timed reset on frame limit correctly", "[SdeTrigger]" )
 {
     GIVEN( "A new SdeTrigger with default criteria" ) 
     {

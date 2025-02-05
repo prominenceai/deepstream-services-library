@@ -2,7 +2,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2024, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "DslApi.h"
 #include "DslSourceBintr.h"
 #include "DslStreammuxBintr.h"
+#include "DslAudiomixBintr.h"
 
 namespace DSL
 {
@@ -128,6 +129,59 @@ namespace DSL
          */
         bool StreammuxPlayTypeIsLiveSet(bool isLive);
 
+        /**
+         * @brief Gets the current enabled setting for the Audiomixer.
+         * @return true if enabled, false otherwise.
+         */
+        boolean GetAudiomixEnabled();
+
+        /**
+         * @brief Gets the current enabled setting for the Audiomixer.
+         * @param[in] enabled set to true to enable, false otherwise.
+         * @return true if set successfully, false otherwise.
+         */
+        bool SetAudiomixEnabled(boolean enabled);
+        
+        /**
+         * @brief Gets the mute enabled setting for one of the Audiomixer's sink pad.
+         * @param[in] pChildSource shared pointer to the Child Source that is
+         * connected to the Audiomixer's sink pad to query.
+         * @param[out] enabled true if mute is enable, false otherwise.
+         * @return true if queried successfully, false otherwise.
+         */
+        bool GetAudiomixMuteEnabled(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            boolean* enabled);
+
+        /**
+         * @brief Sets the mute enabled setting for one of the Audiomixer's sink pad.
+         * @param[in] pChildSource shared pointer to the Child Source that is
+         * connected to the Audiomixer's sink pad to update.
+         * @param[in] enabled set to true to enable, false otherwise.
+         * @return true if set successfully, false otherwise.
+         */
+        bool SetAudiomixMuteEnabled(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            boolean enabled);
+
+        /**
+         * @brief Gets the volume setting for one of the Audiomixer's sink pad.
+         * @param[in] pChildSource shared pointer to the Child Source that is
+         * connected to the Audiomixer's sink pad to query.
+         * @param[out] volume current volume between 0.0 and 10.0, default = 1.
+         * @return true if queried successfully, false otherwise.
+         */
+        bool GetAudiomixVolume(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            double* volume);
+
+        /**
+         * @brief Sets the volume setting for one of the Audiomixer's sink pad.
+         * @param[in] pChildSource shared pointer to the Child Source that is
+         * connected to the Audiomixer's sink pad to update.
+         * @param[in] volume new volume between 0.0 and 10.0.
+         * @return true if set successfully, false otherwise.
+         */
+        bool SetAudiomixVolume(DSL_AUDIO_SOURCE_PTR pChildSource, 
+            double volume);
+
         void EosAll();
 
         /**
@@ -146,6 +200,12 @@ namespace DSL
          * disabled by default.
          */
         DSL_STREAMMUX_PTR m_pAudiomux;
+
+        /**
+         * @brief Audiomixer for this PipelineSourcesBintr, 
+         * disabled by default.
+         */
+        DSL_AUDIOMIX_PTR m_pAudiomix;
 
     private:
 
@@ -186,6 +246,12 @@ namespace DSL
          * @param pChildElement a shared pointer to the Elementr to remove
          */
         bool RemoveChild(DSL_BASE_PTR pChildElement);
+
+        /**
+         * @brief Updates the PipelineSourcesBintr media-type base on
+         * which muxer and/or mixer has been enabled.
+         */
+        void UpdateMediaType();
 
         /**
          * @brief current number of child Sources that support AUDIO 

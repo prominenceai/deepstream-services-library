@@ -101,7 +101,6 @@ static void sde_occurrence_monitor_cb(dsl_sde_occurrence_info* pInfo,
 
     std::cout << "  Sound Data        : ------------------------" << "\n";
     std::cout << "    Class Id        : " << pInfo->sound_info.class_id << "\n";
-    std::cout << "    Infer Comp Id   : " << pInfo->sound_info.inference_component_id << "\n";
     std::cout << "    Label           : " << pInfo->sound_info.label << "\n";
     std::cout << "    Infer Conf      : " << pInfo->sound_info.inference_confidence << "\n";
     std::cout << "  Trigger Criteria  : ------------------------" << "\n";

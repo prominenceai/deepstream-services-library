@@ -19,6 +19,9 @@ Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added 
 * [8uri_file_pph_meter_performace_reporting.py](/examples/python/8uri_file_pph_meter_performace_reporting.py)
 
 ## Tiler API
+**Typedefs**
+* [`dsl_tiler_source_show_listener_cb`](#dsl_tiler_source_show_listener_cb)
+
 **Constructors**
 * [`dsl_tiler_new`](#dsl_tiler_new)
 
@@ -34,6 +37,8 @@ Multiple sink and/or source [Pad-Probe Handlers](/docs/api-pph.md) can be added 
 * [`dsl_tiler_source_show_select`](#dsl_tiler_source_show_select)
 * [`dsl_tiler_source_show_cycle`](#dsl_tiler_source_show_cycle)
 * [`dsl_tiler_source_show_all`](#dsl_tiler_source_show_all)
+* [`dsl_tiler_source_show_listener_add`](#dsl_tiler_source_show_listener_add)
+* [`dsl_tiler_source_show_listener_remove`](#dsl_tiler_source_show_listener_remove)
 * [`dsl_tiler_pph_add`](#dsl_tiler_pph_add)
 * [`dsl_tiler_pph_remove`](#dsl_tiler_pph_remove)
 
@@ -51,7 +56,25 @@ The following return codes are used by the Tiler API
 #define DSL_RESULT_TILER_HANDLER_REMOVE_FAILED                      0x00070008
 #define DSL_RESULT_TILER_PAD_TYPE_INVALID                           0x00070009
 #define DSL_RESULT_TILER_COMPONENT_IS_NOT_TILER                     0x0007000A
+#define DSL_RESULT_TILER_CALLBACK_ADD_FAILED                        0x0007000B
+#define DSL_RESULT_TILER_CALLBACK_REMOVE_FAILED                     0x0007000C
 ```
+
+## Client Callback Typedefs
+### *dsl_tiler_source_show_listener_cb*
+```C++
+typedef void (*dsl_tiler_source_show_listener_cb)(const wchar_t* name,
+    const wchar_t* source, int stream_id, void* client_data);
+```
+Callback typedef for a client show-source listener. Functions of this type are added to a Tiler by calling [`dsl_tiler_source_show_listener_add`](#dsl_tiler_source_show_listener_add). Once added, the function will be called each time the Tiler's `show-source` property is updated.
+
+**Parameters**
+* `name` - [in] name of the Tiler Component calling this callback on change of source shown.
+* `source` - [in] name of the new Source shown, or "" for showing all sources.
+* `stream_id` - [in] unique stream-id of the new Source shown, or -1 for all sources.
+* `client_data` - [in] opaque pointer to the client's user data provided to the Tiler when this function is added.
+
+<br>
 
 ## Constructors
 ### *dsl_tiler_new*
@@ -317,6 +340,59 @@ This service sets the current show-source setting for the named Tiler to `DSL_TI
 **Python Example**
 ```Python
 retval = dsl_tiler_source_show_all('my-tiler')
+```
+
+<br>
+
+### *dsl_tiler_source_show_listener_add*
+```C++
+DslReturnType dsl_tiler_source_show_listener_add(const wchar_t* name, 
+    dsl_tiler_source_show_listener_cb listener, void* client_data);
+```
+The service adds a [source-show-listener](#dsl_tiler_source_show_listener_cb) callback function to a named Tiler. The callback will be called after the Tiler's
+`show-source` property has been updated.
+
+**Parameters**
+* `name` - [in] unique name of the Tiler to update.
+* `listener` - [in] client callback function to add.
+* `client_data` - [in] opaque pointer to client data returned to the listener callback function.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful add. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+def source_show_listener_cb(name, source, stream_id, client_data):
+    
+    if stream_id != -1:
+        print(name, " is now showing Source =", source)
+    else:
+        print(name, " is now showing all sources")    
+
+retval = dsl_tiler_source_show_listener_add('my-tiler', 
+    source_show_listener_cb, NULL)
+```
+
+<br>
+
+### *dsl_tiler_source_show_listener_remove*
+```C++
+DslReturnType dsl_tiler_source_show_listener_remove(const wchar_t* name, 
+    dsl_tiler_source_show_listener_cb listener);
+```
+This service removes a [source-show-listener](#dsl_tiler_source_show_listener_cb) callback function from a named Tiler. 
+
+**Parameters**
+* `name` - [in] unique name of the Tiler to update.
+* `listener` - [in] callback function to remove.
+
+**Returns**
+* `DSL_RESULT_SUCCESS` on successful remove. One of the [Return Values](#return-values) defined above on failure.
+
+**Python Example**
+```Python
+retval = dsl_tiler_source_show_listener_remove('my-tiler',
+    source_show_listener_cb)
 ```
 
 <br>

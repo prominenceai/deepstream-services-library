@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "Dsl.h"
 #include "DslTilerBintr.h"
 #include "DslBranchBintr.h"
+#include "DslServices.h"
 
 namespace DSL
 {
@@ -36,6 +37,7 @@ namespace DSL
         , m_rows(0)
         , m_columns(0)
         , m_frameNumberingEnabled(false)
+        , m_notifyClientsTimerId(0)
         , m_showSourceTimeout(0)
         , m_showSourceCounter(0)
         , m_showSourceTimerId(0)
@@ -51,7 +53,7 @@ namespace DSL
         m_pTiler->SetAttribute("height", m_height);
         
         // Get property defaults that aren't specifically set
-        m_pTiler->GetAttribute("show-source", &m_showSourceId);
+        m_pTiler->GetAttribute("show-source", &m_showStreamId);
         m_pTiler->GetAttribute("gpu-id", &m_gpuId);
         m_pTiler->GetAttribute("compute-hw", &m_computeHw);
         m_pTiler->GetAttribute("nvbuf-memory-type", &m_nvbufMemType);
@@ -62,7 +64,7 @@ namespace DSL
         LOG_INFO("  columns              : " << m_columns);
         LOG_INFO("  width                : " << m_width);
         LOG_INFO("  height               : " << m_height);
-        LOG_INFO("  show-source          : " << m_showSourceId);
+        LOG_INFO("  show-source          : " << m_showStreamId);
         LOG_INFO("  gpu-id               : " << m_gpuId);
         LOG_INFO("  nvbuf-memory-type    : " << m_nvbufMemType);
         LOG_INFO("  compute-hw           : " << m_computeHw);
@@ -106,6 +108,12 @@ namespace DSL
         {    
             UnlinkAll();
         }
+        if (m_notifyClientsTimerId)
+        {
+            LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+            
+            g_source_remove(m_notifyClientsTimerId);
+        }
         if (m_showSourceTimerId)
         {
             LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
@@ -118,7 +126,6 @@ namespace DSL
     {
         LOG_FUNC();
         
-        // add 'this' tiler to the Parent Pipeline 
         return std::dynamic_pointer_cast<BranchBintr>(pParentBintr)->
             AddTilerBintr(shared_from_this());
     }
@@ -231,46 +238,49 @@ namespace DSL
     }
     
 
-    void TilerBintr::GetShowSource(int* sourceId, uint* timeout)
+    void TilerBintr::GetShowSource(int* streamId, uint* timeout)
     {
         LOG_FUNC();
         
-        *sourceId = m_showSourceId;
+        *streamId = m_showStreamId;
         *timeout = m_showSourceTimeout;
     }
 
-    bool TilerBintr::SetShowSource(int sourceId, uint timeout, bool hasPrecedence)
+    bool TilerBintr::SetShowSource(int streamId, uint timeout, bool hasPrecedence)
     {
-        // Not logging function entry/exit as this serice can be called by actions for
-        // every object in every frame.
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
 
-        if (sourceId < 0)
+        if (streamId < 0)
         {
-            LOG_ERROR("Invalid source Id '" << sourceId << "' for TilerBintr '" << GetName());
+            LOG_ERROR("Invalid source Id '" << streamId << "' for TilerBintr '" << GetName());
             return false;
         }
 
         // call has Precendence over source cycling 
         m_showSourceCycle = false;
-        if (sourceId != m_showSourceId)
+        if (streamId != m_showStreamId)
         {
             if (m_showSourceTimerId and !hasPrecedence)
             {
                 // don't log error as this may be common with ODE Triggers and Actions calling
-                LOG_DEBUG("Show source Timer is running for Source '" << m_showSourceId << 
-                   "' New Source '" << sourceId << "' without precedence can not be shown");
+                LOG_DEBUG("Show source Timer is running for Source '" << m_showStreamId << 
+                   "' New Source '" << streamId << "' without precedence can not be shown");
                 return false;
             }
 
-            m_showSourceId = sourceId;
             m_showSourceTimeout = timeout;
-            m_pTiler->SetAttribute("show-source", m_showSourceId);
+
+            if (!SetShowSource(streamId))
+            {
+                return false;
+            }
 
             m_showSourceCounter = m_showSourceTimeout*10;
             if (m_showSourceCounter)
             {
-                LOG_INFO("Adding show-source timer with timeout = " << timeout << "' for TilerBintr '" << GetName());
+                LOG_INFO("Adding show-source timer with timeout = " 
+                    << timeout << "' for TilerBintr '" << GetName());
                 m_showSourceTimerId = g_timeout_add(100, ShowSourceTimerHandler, this);
             }
             return true;
@@ -306,9 +316,10 @@ namespace DSL
         }
 
         m_showSourceCycle = true;
-        m_showSourceId = 0;
         m_showSourceTimeout = timeout;
-        m_pTiler->SetAttribute("show-source", m_showSourceId);
+
+        // Start with stream 0
+        SetShowSource(0);
 
         m_showSourceCounter = m_showSourceTimeout*10;
             
@@ -323,6 +334,7 @@ namespace DSL
     
     void TilerBintr::ShowAllSources()
     {
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
         
         if (m_showSourceTimerId)
@@ -332,15 +344,15 @@ namespace DSL
             // call has Precendence over source cycling 
             m_showSourceCycle = false;
         }
-        if (m_showSourceId != -1)
+        if (m_showStreamId != -1)
         {
-            m_showSourceId = -1;
-            m_pTiler->SetAttribute("show-source", m_showSourceId);
+            SetShowSource(-1);
         }
     }
 
     int TilerBintr::HandleShowSourceTimer()
     {
+        LOG_FUNC();
         LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
         
         // Tiler is no longer linked but the main_loop and timer are still running
@@ -357,16 +369,112 @@ namespace DSL
             {
                 // reset the timeout counter, cycle to the next source, and return true to continue
                 m_showSourceCounter = m_showSourceTimeout*10;
-                m_showSourceId = (m_showSourceId+1)%m_batchSize;
-                m_pTiler->SetAttribute("show-source", m_showSourceId);
+                int newStreamId((m_showStreamId+1)%m_batchSize);
+                SetShowSource(newStreamId);
                 return true;
             }
             // otherwise, reset the timer Id, show all sources, and return false to destroy the timer
             m_showSourceTimerId = 0;
-            m_showSourceId = -1;
-            m_pTiler->SetAttribute("show-source", m_showSourceId);
+            SetShowSource(-1);
             return false;
         }
+        return true;
+    }
+
+
+    bool TilerBintr::SetShowSource(int streamId)
+    {
+        LOG_FUNC();
+        
+        // clear the source name first
+        m_wstrSourceName = L"";
+
+        // if showing a specific source, and not all sources.
+        if (streamId != -1)
+        {
+            uint sourceId = 
+                (m_pipelineId << DSL_PIPELINE_SOURCE_UNIQUE_ID_OFFSET_IN_BITS) 
+                | (uint)streamId;
+
+            const char* cSourceName;          
+      
+            // check for a valid source name, otherwise, it's an inactive tile. 
+            if (Services::GetServices()->_sourceNameGet(sourceId, &cSourceName)
+                == DSL_RESULT_SUCCESS)
+            {
+                // convert the source name to wchar to send to the client.
+                std::string cstrSource(cSourceName);
+                m_wstrSourceName.assign(cstrSource.begin(), cstrSource.end());
+            }
+            else
+            {
+                LOG_ERROR("Inactive stream = " << streamId 
+                    << " selected for Tiler '" << GetName() << "'");
+                return false;
+            }
+        }
+        // ok to set the element property now
+        m_showStreamId = streamId;
+        m_pTiler->SetAttribute("show-source", m_showStreamId);
+
+        if (m_showSourceListeners.size() and !m_notifyClientsTimerId)
+        {
+            m_notifyClientsTimerId = g_timeout_add(1, NotifyClientsTimerHandler, this);
+        }
+
+        return true;
+    }
+
+    int TilerBintr::HandleNotifiyClients()
+    {
+        LOG_FUNC();
+        LOCK_MUTEX_FOR_CURRENT_SCOPE(&m_showSourceMutex);
+
+        // iterate through the map of listeners calling each
+        for(auto const& imap: m_showSourceListeners)
+        {
+            try
+            {
+                imap.first(GetWStrName().c_str(), 
+                    m_wstrSourceName.c_str(), m_showStreamId, imap.second);
+            }
+            catch(...)
+            {
+                LOG_ERROR("Exception calling Client Show-Source-Lister");
+            }
+        }
+        // Clear the timer resource id and return false to destroy the timer.
+        m_notifyClientsTimerId = 0;
+        return false;
+    }
+
+    bool TilerBintr::AddShowSourceListener(
+        dsl_tiler_source_show_listener_cb listener, void* clientData)
+    {
+        LOG_FUNC();
+
+        if (m_showSourceListeners.find(listener) != m_showSourceListeners.end())
+        {   
+            LOG_ERROR("Show Source listener is not unique");
+            return false;
+        }
+        m_showSourceListeners[listener] = clientData;
+        
+        return true;
+    }
+
+    bool TilerBintr::RemoveShowSourceListener(
+        dsl_tiler_source_show_listener_cb listener)
+    {
+        LOG_FUNC();
+        
+        if (m_showSourceListeners.find(listener) == m_showSourceListeners.end())
+        {   
+            LOG_ERROR("Show Source listener was not found");
+            return false;
+        }
+        m_showSourceListeners.erase(listener);
+        
         return true;
     }
 
@@ -413,4 +521,11 @@ namespace DSL
         return static_cast<TilerBintr*>(user_data)->
             HandleShowSourceTimer();
     }
+
+    static int NotifyClientsTimerHandler(void* user_data)
+    {
+        return static_cast<TilerBintr*>(user_data)->
+            HandleNotifiyClients();
+    }
+
 }

@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c)   2021-2024, Prominence AI, Inc.
+Copyright (c)   2021-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -669,7 +669,7 @@ namespace DSL
         {
             LOG_ERROR("Inference Component '" << name 
                 << "' threw an exception adding a Model Update Listener");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
         
@@ -690,7 +690,7 @@ namespace DSL
             {
                 LOG_ERROR("Inference Component '" << name 
                     << "' failed to remove a Model Update Listener");
-                return DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED;
+                return DSL_RESULT_INFER_CALLBACK_REMOVE_FAILED;
             }
             LOG_INFO("Inference Component '" << name 
                 << "' removed Model Update Listener successfully");
@@ -701,7 +701,7 @@ namespace DSL
         {
             LOG_ERROR("Inference Component '" << name 
                 << "' threw an exception removeing a Model Udate Lister");
-            return DSL_RESULT_SOURCE_THREW_EXCEPTION;
+            return DSL_RESULT_INFER_THREW_EXCEPTION;
         }
     }
     

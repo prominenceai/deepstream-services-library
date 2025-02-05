@@ -3580,6 +3580,20 @@ namespace DSL
         return DSL_RESULT_SOURCE_NOT_FOUND;
     }
 
+    // internal version that does not lock services API mutex
+    DslReturnType Services::_sourceNameGet(int uniqueId, const char** name)
+    {
+        LOG_FUNC();
+        
+        if (m_sourceNamesById.find(uniqueId) != m_sourceNamesById.end())
+        {
+            *name = m_sourceNamesById[uniqueId].c_str();
+            return DSL_RESULT_SUCCESS;
+        }
+        *name = NULL;
+        return DSL_RESULT_SOURCE_NOT_FOUND;
+    }
+
     void Services::_sourceNameSet(const char* name, uint uniqueId)
     {
         LOG_FUNC();

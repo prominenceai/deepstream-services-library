@@ -149,28 +149,24 @@ def main(args):
             break
 
         ## New URI Source with HTTP URI
-        retval = dsl_source_uri_new('uri-source', uri_http, False, False, 0)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-            
-        retval = dsl_component_media_type_set('uri-source', 
-            DSL_MEDIA_TYPE_AUDIO_VIDEO)
-        if retval != DSL_RETURN_SUCCESS:
-            break
-
-        # retval = dsl_source_alsa_new('alsa-source', 'default')
+        # retval = dsl_source_uri_new('uri-source', uri_http, False, False, 0)
         # if retval != DSL_RETURN_SUCCESS:
         #     break
+            
+        # retval = dsl_component_media_type_set('uri-source', 
+        #     DSL_MEDIA_TYPE_AUDIO_VIDEO)
+        # if retval != DSL_RETURN_SUCCESS:
+        #     break
+
+        retval = dsl_source_alsa_new('alsa-source', 'default')
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         retval = dsl_infer_aie_primary_new('paie', 
             primary_infer_config_file, primary_model_engine_file,
             frame_size, hop_size, transform)
         if retval != DSL_RETURN_SUCCESS:
             break
-
-        # retval = dsl_sde_action_print_new('sde-print-action', False)
-        # if retval != DSL_RETURN_SUCCESS:
-        #     break
 
         retval = dsl_sde_action_monitor_new('occurrence-monitor',
             client_monitor = sde_occurrence_monitor,
@@ -200,11 +196,6 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
                    
-         # New alsa sink using default sound card and device
-        # retval = dsl_sink_alsa_new('alsa-sink', 'default')
-        # if retval != DSL_RETURN_SUCCESS:
-        #     break
-
         retval = dsl_sink_fake_new('fake-sink')
         if retval != DSL_RETURN_SUCCESS:
             break
@@ -232,13 +223,14 @@ def main(args):
         if retval != DSL_RETURN_SUCCESS:
             break
 
-        # retval = dsl_pipeline_videomux_enabled_set('pipeline', False)
-        # if retval != DSL_RETURN_SUCCESS:
-        #     break
+        retval = dsl_pipeline_videomux_enabled_set('pipeline', False)
+        if retval != DSL_RETURN_SUCCESS:
+            break
 
         # Add all the components to a new pipeline
         retval = dsl_pipeline_component_add_many('pipeline', 
-            ['uri-source', 'paie', 'fake-sink', 'egl-sink', None])
+            ['alsa-source', 'paie', 'fake-sink', None])
+#            ['uri-source', 'paie', 'fake-sink', 'egl-sink', None])
         if retval != DSL_RETURN_SUCCESS:
             break
 

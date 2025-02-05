@@ -1,7 +1,7 @@
 /*
 The MIT License
 
-Copyright (c) 2019-2023, Prominence AI, Inc.
+Copyright (c) 2019-2025, Prominence AI, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -631,6 +631,32 @@ namespace DSL
          */
         bool SetAudioBufferOutSampleRate(uint rate);
 
+        /**
+         * @brief Gets the Audiomixer mute setting for this AudioSourceBintr if used.
+         * The AudioSourceBintr maintains this value for the Audiomixer.  
+         * @return current mute-enabled setting.
+         */
+        boolean GetAudiomixMuteEnabled();
+
+        /**
+         * @brief Sets the Audiomixer mute setting for the AudioSourceBintr.
+         * @param[in] enabled the mute setting for the AudioSourceBintr to store.
+         */
+        void SetAudiomixMuteEnabled(boolean enabled);
+
+        /**
+         * @brief Gets the Audiomixer volume for this AudioSourceBintr if used.
+         * The AudioSourceBintr maintains this value for the Audiomixer.  
+         * @return current volume setting.
+         */
+        double GetAudiomixVolume();
+
+        /**
+         * @brief Sets the Audiomixer volume setting for the AudioSourceBintr.
+         * @param[in] volume the mute setting for the AudioSourceBintr to store.
+         */
+        void SetAudiomixVolume(double volume);
+
     protected:
     
         /**
@@ -712,6 +738,18 @@ namespace DSL
          * Default = 0 = no change in number of channels.
          */
         uint m_bufferOutChannels;
+
+        /**
+         * @brief Audiomixer mute enabled setting, stored for use by the
+         * Audiomixer.
+         */
+        boolean m_audiomixMuteEnabled;
+
+        /**
+         * @brief Audiomixer volume setting, stored for use by the
+         * Audiomixer.
+         */
+        double m_audiomixVolume;
         
         /**
          * @brief Queue for the AudioSourceBintr's output-buffer.
