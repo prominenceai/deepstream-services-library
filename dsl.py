@@ -8428,7 +8428,26 @@ def dsl_component_queue_leaky_set(name, leaky):
     return int(result)
 
 ##
-## dsl_component_queue_leaky_set_many()c_wchar_p, 
+### dsl_component_queue_leaky_set_many()
+##
+#_dsl.dsl_component_queue_leaky_set_many.argtypes = []?
+_dsl.dsl_component_queue_leaky_set_many.restype = c_uint
+def dsl_component_queue_leaky_set_many(names, leaky):
+    global _dsl
+    arr = (c_wchar_p * len(names))()
+    arr[:] = names
+    result =_dsl.dsl_component_queue_leaky_set_many(arr, leaky)
+    return int(result)
+
+##
+## dsl_component_queue_max_size_get()
+##
+_dsl.dsl_component_queue_max_size_get.argtypes = [c_wchar_p, 
+    c_uint, POINTER(c_uint64)]
+_dsl.dsl_component_queue_max_size_get.restype = c_uint
+def dsl_component_queue_max_size_get(name, unit):
+    global _dsl
+    max_size = c_uint64(0)
     result = _dsl.dsl_component_queue_max_size_get(name, 
         unit, DSL_UINT64_P(max_size))
     return int(result), max_size.value
