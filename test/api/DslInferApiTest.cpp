@@ -683,7 +683,7 @@ SCENARIO( "A model-update-listener can be added and removed", "[infer-api]" )
                 // second call must fail
                 REQUIRE( dsl_infer_engine_model_update_listener_remove(
                     primary_gie_name.c_str(),model_update_listener_cb) == 
-                        DSL_RESULT_SOURCE_CALLBACK_REMOVE_FAILED );
+                        DSL_RESULT_INFER_CALLBACK_REMOVE_FAILED );
 
                 REQUIRE( dsl_component_delete_all() == DSL_RESULT_SUCCESS );
             }
