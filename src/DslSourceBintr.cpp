@@ -3831,9 +3831,24 @@ namespace DSL
     bool RtspSourceBintr::HandleSelectStream(GstElement *pBin, 
         uint num, GstCaps *caps)
     {
+        LOG_FUNC();
+
         GstStructure *structure = gst_caps_get_structure(caps, 0);
-        std::string media = gst_structure_get_string (structure, "media");
-        std::string encoding = gst_structure_get_string (structure, "encoding-name");
+
+        const char* cMedia = gst_structure_get_string (structure, "media");
+        const char* cEncoding = gst_structure_get_string (structure, "encoding-name");
+
+        std::string media;
+        std::string encoding;
+
+        if (cMedia)
+        {
+            media = cMedia;
+        }
+        if (cEncoding)
+        {
+            encoding = cEncoding;
+        }
 
         LOG_INFO("Media = '" << media << "' for RtspSourceBitnr '" 
             << GetName() << "'");
