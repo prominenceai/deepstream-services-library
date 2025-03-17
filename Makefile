@@ -39,7 +39,7 @@ else
 endif
 
 CXX_VERSION:=c++17
-DSL_VERSION:='L"v0.31.b.alpha"'
+DSL_VERSION:='L"v0.31.c.alpha"'
 
 GLIB_VERSION:=2.0
 GSTREAMER_VERSION:=1.0
