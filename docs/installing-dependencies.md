@@ -3,9 +3,10 @@ The DeepStream Services Library (DSL) is built on the NVIDIA® [DeepStream SDK](
 
 Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html) for complete Installation Instructions.
 
-> The following installation instructions are specific to NVIDIA® DeepStream Versions 6.4 and 7.0 on Ubuntu 22.04.
+> The following installation instructions are specific to NVIDIA® DeepStream Versions 7.0 and 7.1 on Ubuntu 22.04.
 
 ## Contents
+* [Check / Fix DeepStream Installation](#check--fix-deepstream-installation)
 * [Base Install - Jetson and dGPU](#base-install---jetson-and-dgpu)
 * [Additional WebRTC Sink Dependencies](#additional-webrtc-sink-dependencies)
 * [Enabling Extended Image Services (Optional)](#enabling-extended-image-services-optional)
@@ -13,6 +14,26 @@ Please consult the [NVIDIA DeepStream Quick Start Guide](https://docs.nvidia.com
 * [Documentation and Debug Dependencies (Optional)](#documentation-and-debug-dependencies-optional)
 
 ---
+
+## Check / Fix DeepStream Installation
+**IMPORTANT!** The DeepStream 7.0 and 7.1 installation instructions have a critical error that prevents DSL from building. See [Error in DeepStream 7.1 installation instructions - symlink fails to create](https://forums.developer.nvidia.com/t/error-in-deepstream-7-1-installation-instructions-symlink-fails-to-create/327300).
+
+Navigate to the `/opt/nvidia/deepstream` folder and check to see if the child `deepstream` folder is a symlink (folder with red arrow) as show below.
+
+![](/Images/valid-symlink.png)
+
+If instead the folder looks as follows
+
+![](/Images/missing-symlink.png)
+
+You will need to run the following commands to fix the installation
+
+```bash
+sudo mv /opt/nvidia/deepstream/deepstream/lib/* /opt/nvidia/deepstream/deepstream-7.1/lib/
+sudo rm -r /opt/nvidia/deepstream/deepstream
+sudo ln -s /opt/nvidia/deepstream/deepstream-7.1/ /opt/nvidia/deepstream/deepstream
+```
+Then verify the folder appears as the first image above
 
 ## Base Install - Jetson and dGPU
 ### Native Install 
